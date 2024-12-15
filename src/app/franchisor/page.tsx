@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sidebar } from "@/components/ui/sidebar"
 import { DashboardView } from "@/components/franchisor/views/dashboard-view"
+import { FranchseesView } from "@/components/franchisor/views/franchisees-view"
 import { ItemsView } from "@/components/franchisor/views/items-view"
 import { InvoicesView } from "@/components/franchisor/views/invoices-view"
 import { OrdersView } from "@/components/franchisor/views/orders-view"
@@ -35,7 +36,7 @@ export default function Franchisor() {
   const renderView = () => {
     switch (currentView) {
       case 'franchisees':
-        return <DashboardView />
+        return <FranchseesView />
       case 'items':
         return <ItemsView />
       case 'invoices':
