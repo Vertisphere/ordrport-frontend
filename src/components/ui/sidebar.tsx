@@ -16,14 +16,13 @@ interface SidebarProps {
   navItems: NavItem[]
   adminItems?: NavItem[]
   collapsed?: boolean
-  onToggle?: () => void
 }
 
-export function Sidebar({ name, userId, navItems, adminItems, collapsed = true, onToggle = () => {} }: SidebarProps) {
+export function Sidebar({ name, userId, navItems, adminItems, collapsed = true }: SidebarProps) {
   return (
     <div 
       className={`${collapsed ? 'w-16 hover:w-64' : 'w-64'} 
-        bg-white border-r transition-all duration-300 group fixed h-full`}
+        bg-white border-r transition-all duration-300 group h-full`}
     >
       <div className={`p-4 bg-[#F4804F] text-white`}>
         <div className="flex items-center gap-3">
@@ -32,9 +31,6 @@ export function Sidebar({ name, userId, navItems, adminItems, collapsed = true, 
             <div className="font-medium">{name}</div>
             <div className="text-sm opacity-75">{userId}</div>
           </div>
-          <button onClick={onToggle} className="p-2 hover:bg-[#e67341] rounded-full flex-shrink-0">
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
         </div>
       </div>
       <nav className="p-2 space-y-1">
