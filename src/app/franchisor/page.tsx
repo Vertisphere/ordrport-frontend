@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sidebar } from "@/components/ui/sidebar"
 import { DashboardView } from "@/components/franchisor/views/dashboard-view"
-import { FranchseesView } from "@/components/franchisor/views/franchisees-view"
+import { FranchiseesView } from "@/components/franchisor/views/franchisees-view"
 import { ItemsView } from "@/components/franchisor/views/items-view"
 import { InvoicesView } from "@/components/franchisor/views/invoices-view"
 import { OrdersView } from "@/components/franchisor/views/orders-view"
@@ -21,6 +21,7 @@ import { ProfileView } from "@/components/franchisor/views/profile-view"
 import { AuthModal } from "@/components/franchisor/auth/auth-modal"
 import { UnauthorizedModal } from "@/components/franchisor/auth/unauthorized-modal"
 import { ExpiredModal } from "@/components/franchisor/auth/expired-modal"
+import { useState } from 'react'
 
 export default function Franchisor() {
   const { user, isLoading, showAuthModal } = useAuth()
@@ -36,7 +37,7 @@ export default function Franchisor() {
   const renderView = () => {
     switch (currentView) {
       case 'franchisees':
-        return <FranchseesView />
+        return <FranchiseesView />
       case 'items':
         return <ItemsView />
       case 'invoices':
@@ -122,7 +123,7 @@ export default function Franchisor() {
             ]}
           />
         )}
-        <main className="flex-1 overflow-auto" style={{ height: 'calc(100vh - 64px)' }}>
+        <main className="flex-1 overflow-auto pl-16" style={{ height: 'calc(100vh - 64px)' }}>
           {user && user.isFranchisor && renderView()}
         </main>
       </div>
