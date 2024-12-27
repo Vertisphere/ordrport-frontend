@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight, LucideIcon } from 'lucide-react'
 import Link from 'next/link'
+import { useEffect } from 'react'
 
 interface NavItem {
   href: string
@@ -15,19 +16,21 @@ interface SidebarProps {
   userId: string
   navItems: NavItem[]
   adminItems?: NavItem[]
-  collapsed?: boolean
+  collapsed: boolean
+  onToggle: () => void
 }
 
-export function Sidebar({ name, userId, navItems, adminItems, collapsed = true }: SidebarProps) {
+export function Sidebar({ name, userId, navItems, adminItems, collapsed, onToggle }: SidebarProps) {
   return (
     <div 
-      className={`${collapsed ? 'w-16 hover:w-64' : 'w-64'} 
-        bg-white border-r transition-all duration-300 group h-full`}
+      className={`${collapsed ? 'w-16' : 'w-64'} bg-white border-r transition-all duration-300 h-full`}
+      onMouseEnter={() => collapsed && onToggle()}
+      onMouseLeave={() => !collapsed && onToggle()}
     >
-      <div className={`p-4 bg-[#F4804F] text-white`}>
-        <div className="flex items-center gap-3">
+      <div className="p-4 bg-[#F4804F] text-white">
+        <div className="flex items-center">
           <div className="w-8 h-8 bg-white rounded-full flex-shrink-0" />
-          <div className={`flex-1 ${collapsed ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity duration-300`}>
+          <div className={`ml-3 flex-1 ${collapsed ? 'hidden' : ''}`}>
             <div className="font-medium">{name}</div>
             <div className="text-sm opacity-75">{userId}</div>
           </div>
@@ -38,15 +41,17 @@ export function Sidebar({ name, userId, navItems, adminItems, collapsed = true }
           <Link
             key={index}
             href={item.href}
-            className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md ${
+            className={`flex items-center h-9 px-3 text-sm rounded-md ${
               item.isActive 
                 ? "bg-[#4B2E83] text-white" 
                 : "text-gray-700 hover:bg-gray-100"
             }`}
             title={collapsed ? item.label : undefined}
           >
-            <item.icon className="w-4 h-4 flex-shrink-0" />
-            <span className={`${collapsed ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity duration-300 whitespace-nowrap`}>
+            <div className="w-4 flex items-center justify-center">
+              <item.icon className="w-4 h-4 flex-shrink-0" />
+            </div>
+            <span className={`ml-3 ${collapsed ? 'hidden' : ''}`}>
               {item.label}
             </span>
           </Link>
@@ -54,22 +59,24 @@ export function Sidebar({ name, userId, navItems, adminItems, collapsed = true }
 
         {adminItems && adminItems.length > 0 && (
           <>
-            <div className={`pt-4 pb-2 ${collapsed ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity duration-300`}>
+            <div className={`h-9 flex items-center ${collapsed ? 'hidden' : ''}`}>
               <div className="px-3 text-xs font-medium text-gray-500">Administration</div>
             </div>
             {adminItems.map((item, index) => (
               <Link
                 key={`admin-${index}`}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md ${
+                className={`flex items-center h-9 px-3 text-sm rounded-md ${
                   item.isActive 
                     ? "bg-[#4B2E83] text-white" 
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
                 title={collapsed ? item.label : undefined}
               >
-                <item.icon className="w-4 h-4 flex-shrink-0" />
-                <span className={`${collapsed ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity duration-300 whitespace-nowrap`}>
+                <div className="w-4 flex items-center justify-center">
+                  <item.icon className="w-4 h-4 flex-shrink-0" />
+                </div>
+                <span className={`ml-3 ${collapsed ? 'hidden' : ''}`}>
                   {item.label}
                 </span>
               </Link>

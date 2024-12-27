@@ -46,7 +46,7 @@ export default function OAuthRedirect() {
         localStorage.setItem('jwt', data.token)
 
         // Redirect back to dashboard
-        window.location.href = '/franchisor?view=dashboard'
+        window.location.href = '/franchisor/dashboard'
         
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Authentication failed')
