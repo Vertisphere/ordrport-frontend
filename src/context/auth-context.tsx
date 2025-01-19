@@ -30,7 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem('jwt')
     
     if (!token) {
-      console.log('no token') 
       setShowAuthModal(true)
       setIsLoading(false)
       return
@@ -38,26 +37,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const decoded = jwtDecode(token) as any
-      // Check if token is expired
-      console.log(decoded)
       if (decoded.exp * 1000 < Date.now()) {
-        console.log('expired')
         localStorage.removeItem('jwt')
         setShowAuthModal(true)
         setIsLoading(false)
         return
       }
 
+      // Check if user is accessing the correct portal
+      const isFranchisorPath = window.location.pathname.startsWith('/franchisor')
+      if (isFranchisorPath !== decoded.is_franchiser) {
+        localStorage.removeItem('jwt')
+        setShowAuthModal(true)
+        setIsLoading(false)
+        return
+      }
 
       setUser({
         name: decoded.name,
         userId: decoded.sub,
-        // TODO: fix this in backend (franchisor)
         isFranchisor: decoded.is_franchiser,
       })
       
     } catch (error) {
-        console.error('Failed to decode token', error)
+      console.error('Failed to decode token', error)
       localStorage.removeItem('jwt')
       setShowAuthModal(true)
     }

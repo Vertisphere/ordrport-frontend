@@ -1,22 +1,20 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { DataTable } from "@/components/data-table"
 import { PageSidebar } from "@/components/page-sidebar"
 import { PageHeader } from "@/components/page-header"
-import { Edit, Trash2, RefreshCw } from 'lucide-react'
+import { Edit, Trash2, RefreshCw, UserPlus, Unlink } from 'lucide-react'
 import { EditPanel } from "@/components/edit-panel"
-import { Franchisee, franchiseeColumns } from "@/types/entities"
+import { Franchisee, franchiseeColumns, franchiseeFormConfig } from "@/types/entities"
 import { SortingState, ColumnFiltersState } from "@tanstack/react-table"
 import { useRouter } from "next/navigation"
 import { FilterItem } from "@/components/advanced-filter"
+import { AccountPanel } from "@/components/account-panel"
+import { UnlinkPanel } from "@/components/unlink-panel"
 
 const sidebarItems = [
-  { title: "Dashboard", href: "/franchisor/dashboard" },
   { title: "Franchisees", href: "/franchisor/franchisees", isActive: true },
-  { title: "Compute Engine", href: "/franchisor/compute-engine" },
-  { title: "Load Balancing", href: "/franchisor/load-balancers" },
-  { title: "Cloud Storage", href: "/franchisor/cloud-storage" },
 ]
 
 export default function FranchisorFranchiseesPage() {
@@ -31,8 +29,10 @@ export default function FranchisorFranchiseesPage() {
   const [columnFilters, setColumnFilters] = useState<FilterItem[]>([])
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 50 })
   const [skipEffect, setSkipEffect] = useState(false)
+  const [isAccountPanelOpen, setIsAccountPanelOpen] = useState(false)
+  const [isUnlinkPanelOpen, setIsUnlinkPanelOpen] = useState(false)
 
-  const buildQueryString = (
+  const buildQueryString = useCallback((
     pageSize: number,
     pageToken: number,
     sorting: SortingState,
@@ -63,25 +63,26 @@ export default function FranchisorFranchiseesPage() {
     }
 
     return params.toString()
-  }
+  }, [])
 
-  const fetchFranchisees = async ({
+  const fetchFranchisees = useCallback(async ({
     pageIndex = 0,
     pageSize = 50,
     sorting = [] as SortingState,
     filters = [] as FilterItem[]
   }) => {
     setIsLoading(true)
+    setSelectedFranchisee(null)
+    setSelectedRows({})
+
     try {
-      // Check if we have a valid auth token
       const jwt = localStorage.getItem('jwt')
       if (!jwt) {
-        router.push('/login')
+        router.push('/franchisor')
         return
       }
 
       const queryString = buildQueryString(pageSize, pageIndex + 1, sorting, filters)
-      console.log(queryString)
       const response = await fetch(
         `https://api.ordrport.com/qbCustomers?${queryString}`,
         {
@@ -92,20 +93,19 @@ export default function FranchisorFranchiseesPage() {
       )
 
       if (response.status === 401) {
-        router.push('/login')
+        router.push('/franchisor')
         return
       }
 
       const data = await response.json()
       setFranchisees(data.customers)
       setTotalRows(data.total_count)
-      console.log('Total Rows:', data.total_count)
     } catch (error) {
       console.error('Error fetching franchisees:', error)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [router, buildQueryString])
 
   useEffect(() => {
     if (!skipEffect) {
@@ -116,13 +116,17 @@ export default function FranchisorFranchiseesPage() {
         filters: columnFilters
       })
     }
-  }, [pagination, sorting, columnFilters, skipEffect])
+  }, [pagination, sorting, columnFilters, skipEffect, fetchFranchisees])
 
   const handleCreateFranchisee = () => {
     console.log("Create franchisee clicked")
   }
 
   const handleRefresh = () => {
+    // Reset the selected franchisee and selected rows
+    // setSelectedFranchisee(null)
+    // setSelectedRows({})
+    // 
     fetchFranchisees({
       pageIndex: pagination.pageIndex,
       pageSize: pagination.pageSize,
@@ -132,8 +136,9 @@ export default function FranchisorFranchiseesPage() {
   }
 
   const handleEdit = () => {
-    const selectedId = Object.keys(selectedRows).find(id => selectedRows[id])
-    const franchisee = franchisees.find(item => item.Id === selectedId)
+    // Find the franchisee by ID instead of row index
+    const selectedId = Object.keys(selectedRows)[0]
+    const franchisee = franchisees.find(f => f.Id === selectedId)
     if (franchisee) {
       setSelectedFranchisee(franchisee)
       setIsEditPanelOpen(true)
@@ -149,6 +154,24 @@ export default function FranchisorFranchiseesPage() {
   }
 
   const selectedRowsCount = Object.values(selectedRows).filter(Boolean).length
+
+  const handleCreateAccount = () => {
+    const selectedId = Object.keys(selectedRows).find(id => selectedRows[id])
+    const franchisee = franchisees.find(f => f.Id === selectedId)
+    if (franchisee) {
+      setSelectedFranchisee(franchisee)
+      setIsAccountPanelOpen(true)
+    }
+  }
+
+  const handleUnlink = () => {
+    const selectedId = Object.keys(selectedRows).find(id => selectedRows[id])
+    const franchisee = franchisees.find(f => f.Id === selectedId)
+    if (franchisee) {
+      setSelectedFranchisee(franchisee)
+      setIsUnlinkPanelOpen(true)
+    }
+  }
 
   const secondaryActions = [
     {
@@ -168,6 +191,22 @@ export default function FranchisorFranchiseesPage() {
       icon: Trash2,
       disabled: selectedRowsCount === 0,
     },
+    {
+      title: "CREATE ACCOUNT",
+      onClick: handleCreateAccount,
+      icon: UserPlus,
+      disabled: selectedRowsCount !== 1,
+    },
+    {
+      title: "UNLINK ACCOUNT",
+      onClick: handleUnlink,
+      icon: Unlink,
+      disabled: selectedRowsCount !== 1 || (() => {
+        const selectedId = Object.keys(selectedRows).find(id => selectedRows[id])
+        const franchisee = franchisees.find(f => f.Id === selectedId)
+        return !franchisee?.firebase_id
+      })(),
+    },
   ]
 
   return (
@@ -180,13 +219,20 @@ export default function FranchisorFranchiseesPage() {
             columns={franchiseeColumns} 
             data={franchisees}
             isLoading={isLoading}
-            entityType="franchisee"
+            entityType="Franchisees"
             totalRows={totalRows}
             sorting={sorting}
             columnFilters={columnFilters}
             pagination={pagination}
-            onPaginationChange={(pageIndex, pageSize) => 
-              setPagination({ pageIndex, pageSize })}
+            onPaginationChange={(pageIndex, pageSize) => { 
+              setSkipEffect(true)
+              setPagination({ pageIndex, pageSize })
+              // This is specifically for the franchisor page since we only want to edit one franchisee at a time. 
+              // on the ordering page, we want to set this off since we want to select multiple items.
+              // setSelectedFranchisee(null)
+              // setSelectedRows({})
+              setTimeout(() => setSkipEffect(false), 0)
+            }}
             onSortingChange={(newSorting) => {
               setSkipEffect(true)
               setSorting(newSorting)
@@ -205,6 +251,8 @@ export default function FranchisorFranchiseesPage() {
             }}
             secondaryActions={secondaryActions}
             onSelectionChange={handleSelectionChange}
+            rowSelection={selectedRows}
+            onRowSelectionChange={setSelectedRows}
           />
         </main>
       </div>
@@ -214,7 +262,27 @@ export default function FranchisorFranchiseesPage() {
           setIsEditPanelOpen(false)
           setSelectedFranchisee(null)
         }}
+        entity={selectedFranchisee}
+        formConfig={franchiseeFormConfig}
+      />
+      <AccountPanel
+        isOpen={isAccountPanelOpen}
+        onClose={() => {
+          setIsAccountPanelOpen(false)
+          setSelectedFranchisee(null)
+        }}
         franchisee={selectedFranchisee}
+        defaultEmail={selectedFranchisee?.PrimaryEmailAddr?.Address}
+        onSuccess={handleRefresh}
+      />
+      <UnlinkPanel
+        isOpen={isUnlinkPanelOpen}
+        onClose={() => {
+          setIsUnlinkPanelOpen(false)
+          setSelectedFranchisee(null)
+        }}
+        franchisee={selectedFranchisee}
+        onSuccess={handleRefresh}
       />
     </>
   )

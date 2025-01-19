@@ -18,44 +18,110 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { FormField, EntityType } from "@/types/entities"
 
-interface Field {
-  key: string
-  label: string
-  type: 'text' | 'select'
-  description?: string
-  options?: string[]
-  required?: boolean
-}
-
-interface EditFormProps {
+interface EditFormProps<T extends EntityType> {
   title: string
   description?: string
-  fields: Field[]
-  values: Record<string, any>
-  onSave: (values: Record<string, any>) => void
+  fields: FormField[]
+  values: T
+  onSave: (values: T) => void
   onCancel: () => void
 }
 
-export function EditForm({
+export function EditForm<T extends EntityType>({
   title,
   description,
   fields,
   values,
   onSave,
   onCancel
-}: EditFormProps) {
-  const [formValues, setFormValues] = React.useState(values)
+}: EditFormProps<T>) {
+  const [formValues, setFormValues] = React.useState<T>(values)
   const [isEdited, setIsEdited] = React.useState(false)
 
-  const handleChange = (key: string, value: string) => {
-    setFormValues(prev => ({ ...prev, [key]: value }))
+  const handleChange = (key: string, value: any) => {
+    // Handle nested keys (e.g., "PrimaryEmailAddr.Address")
+    const keys = key.split('.')
+    if (keys.length > 1) {
+      setFormValues(prev => {
+        const newValues = { ...prev }
+        let current: any = newValues
+        for (let i = 0; i < keys.length - 1; i++) {
+          current[keys[i]] = { ...current[keys[i]] }
+          current = current[keys[i]]
+        }
+        current[keys[keys.length - 1]] = value
+        return newValues
+      })
+    } else {
+      setFormValues(prev => ({ ...prev, [key]: value }))
+    }
     setIsEdited(true)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSave(formValues)
+  }
+
+  const renderField = (field: FormField) => {
+    // Get the value, handling nested keys
+    const getValue = (key: string) => {
+      const keys = key.split('.')
+      let value: any = formValues
+      for (const k of keys) {
+        value = value?.[k]
+      }
+      return value
+    }
+
+    switch (field.type) {
+      case 'select':
+        return (
+          <Select
+            value={getValue(field.key)?.toString()}
+            onValueChange={(value) => handleChange(field.key, value)}
+          >
+            <SelectTrigger id={field.key} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {field.options?.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )
+      case 'boolean':
+        return (
+          <Select
+            value={getValue(field.key)?.toString()}
+            onValueChange={(value) => handleChange(field.key, value === 'true')}
+          >
+            <SelectTrigger id={field.key} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">Yes</SelectItem>
+              <SelectItem value="false">No</SelectItem>
+            </SelectContent>
+          </Select>
+        )
+      default:
+        return (
+          <Input
+            id={field.key}
+            type={field.type}
+            value={getValue(field.key) || ''}
+            onChange={(e) => handleChange(field.key, e.target.value)}
+            className="w-full"
+            required={field.required}
+          />
+        )
+    }
   }
 
   return (
@@ -88,30 +154,7 @@ export function EditForm({
                   </TooltipProvider>
                 )}
               </div>
-              {field.type === 'select' && field.options ? (
-                <Select
-                  value={formValues[field.key]}
-                  onValueChange={(value) => handleChange(field.key, value)}
-                >
-                  <SelectTrigger id={field.key} className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {field.options.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  id={field.key}
-                  value={formValues[field.key]}
-                  onChange={(e) => handleChange(field.key, e.target.value)}
-                  className="w-full"
-                />
-              )}
+              {renderField(field)}
             </div>
           ))}
         </form>

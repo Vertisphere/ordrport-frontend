@@ -10,6 +10,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useAuth } from "@/context/auth-context"
+import Image from "next/image"
+import { cn } from "@/lib/utils"
+import { LogIn } from 'lucide-react'
 
 export function AuthModal() {
   const { showAuthModal, setShowAuthModal } = useAuth()
@@ -44,8 +47,15 @@ export function AuthModal() {
         <div className="flex justify-center mt-6">
           <Button 
             onClick={handleQuickBooksLogin} 
-            className="bg-[#2CA01C] hover:bg-[#2CA01C]/90"
+            variant="outline"
+            size="sm"
+            className={cn(
+              "font-medium transition-colors",
+              'hover:bg-green-50 hover:text-green-600 hover:border-green-600',
+              "flex items-center gap-2"
+            )}
           >
+            <LogIn className="h-4 w-4" />
             Log in with QuickBooks
           </Button>
         </div>

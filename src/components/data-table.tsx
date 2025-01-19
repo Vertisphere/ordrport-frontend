@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -23,7 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Settings2, ChevronLeft, ChevronRight, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Settings2, ChevronLeft, ChevronRight, CheckCircle, XCircle, Loader2, MoreHorizontal, LucideIcon } from 'lucide-react'
 import { AdvancedFilter, type FilterItem } from "./advanced-filter"
 import {
   DropdownMenu,
@@ -32,6 +32,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import {
   Select,
@@ -44,12 +45,18 @@ import { EntityType, ColumnDefinition } from "@/types/entities"
 import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 
-interface DataTableProps<TData extends EntityType, TValue> {
+interface RowAction<T> {
+  label: string
+  icon: LucideIcon
+  onClick: (row: T) => void
+}
+
+interface DataTableProps<TData extends EntityType & { Id: string }, TValue> {
   columns: ColumnDefinition<TData>[]
   data: TData[]
   totalRows: number
   isLoading: boolean
-  entityType: 'loadBalancer' | 'computeEngine' | 'franchisee'
+  entityType: 'Franchisees' | 'Invoices' | 'Orders' | 'Items' | 'Orders Pending Review' | 'Orders In Preparation'
   sorting: SortingState
   columnFilters: FilterItem[]
   pagination: {
@@ -69,10 +76,15 @@ interface DataTableProps<TData extends EntityType, TValue> {
     icon?: React.ElementType
     disabled?: boolean
   }>
+  selectionMode?: 'checkbox' | 'highlight' | 'none'
   onSelectionChange?: (selectedRows: Record<string, boolean>) => void
+  rowSelection?: Record<string, boolean>
+  onRowSelectionChange?: (value: Record<string, boolean>) => void
+  rowActions?: RowAction<TData>[]
+  title?: string
 }
 
-export function DataTable<TData extends EntityType, TValue>({
+export function DataTable<TData extends EntityType & { Id: string }, TValue>({
   columns,
   data,
   totalRows,
@@ -87,6 +99,11 @@ export function DataTable<TData extends EntityType, TValue>({
   onFiltersChange,
   pagination,
   onPaginationChange,
+  rowSelection = {},
+  onRowSelectionChange = () => {},
+  rowActions,
+  selectionMode = 'checkbox',
+  title,
 }: DataTableProps<TData, TValue>) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     columns.reduce((acc, column) => ({
@@ -94,30 +111,30 @@ export function DataTable<TData extends EntityType, TValue>({
       [column.accessorKey]: column.visible ?? true
     }), {})
   )
-  const [rowSelection, setRowSelection] = useState({})
 
-  const table = useReactTable({
-    data,
-    columns: [
-      {
+  const tableColumns = useMemo(
+    () => [
+      selectionMode === 'checkbox' && {
         id: "select",
-        header: ({ table }) => (
-          <div className="w-8 h-8 flex items-center justify-center">
-            <Checkbox
-              checked={table.getIsAllPageRowsSelected()}
-              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-              aria-label="Select all"
-            />
-          </div>
+        header: ({ table }: { table: any }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
         ),
-        cell: ({ row }) => (
-          <div className="w-8 h-8 flex items-center justify-center">
-            <Checkbox
-              checked={row.getIsSelected()}
-              onCheckedChange={(value) => row.toggleSelected(!!value)}
-              aria-label="Select row"
-            />
-          </div>
+        cell: ({ row }: { row: Row<TData> }) => (
+          <Checkbox
+            checked={rowSelection[row.original.Id]}
+            onCheckedChange={(value) => {
+              const newSelection: Record<string, boolean> = {
+                ...rowSelection,
+                [row.original.Id]: !!value
+              }
+              onRowSelectionChange(newSelection)
+            }}
+            aria-label="Select row"
+          />
         ),
         enableSorting: false,
         enableHiding: false,
@@ -144,25 +161,57 @@ export function DataTable<TData extends EntityType, TValue>({
             },
         enableSorting: col.sortable,
         enableColumnFilter: col.filterable,
-      }))
-    ] as ColumnDef<TData, TValue>[],
-    getCoreRowModel: getCoreRowModel(),
+      })),
+      rowActions && {
+        id: 'actions',
+        cell: ({ row }: { row: Row<TData> }) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {rowActions.map((action, index) => {
+                const Icon = action.icon
+                return (
+                  <DropdownMenuItem
+                    key={index}
+                    onClick={() => action.onClick(row.original)}
+                  >
+                    <Icon className="mr-2 h-4 w-4" />
+                    {action.label}
+                  </DropdownMenuItem>
+                )
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      }
+    ].filter(Boolean),
+    [columns, rowActions, rowSelection, onRowSelectionChange, selectionMode]
+  )
+
+  const table = useReactTable<TData>({
+    data,
+    columns: tableColumns as ColumnDef<TData, any>[],
+    getCoreRowModel: getCoreRowModel(), 
     getPaginationRowModel: getPaginationRowModel(),
     pageCount: Math.ceil(totalRows / pagination.pageSize),
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
+      ...(selectionMode !== 'none' && { rowSelection }),
       pagination,
     },
     manualPagination: true,
     manualSorting: true,
     manualFiltering: true,
-    // onSortingChange: (updater) => {
-    //   const newSorting = typeof updater === 'function' ? updater(sorting) : updater
-    //   onSortingChange(newSorting)
-    // },
+    onSortingChange: (updater) => {
+      const newSorting = typeof updater === 'function' ? updater(sorting) : updater
+      onSortingChange(newSorting)
+    },
     // onColumnFiltersChange: (updater) => {
     //   const newFilters = typeof updater === 'function' ? updater(columnFilters) : updater
     //   onFiltersChange(newFilters)
@@ -171,15 +220,17 @@ export function DataTable<TData extends EntityType, TValue>({
     //   const newPagination = typeof updater === 'function' 
     //     ? updater(pagination)
     //     : updater
+    //   console.log("Pagination changed")
     //   onPaginationChange(newPagination.pageIndex, newPagination.pageSize)
     // },
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: (updater) => {
-      const newRowSelection = 
-        typeof updater === 'function' ? updater(rowSelection) : updater;
-      setRowSelection(newRowSelection);
-      onSelectionChange?.(newRowSelection);
-    },
+    ...(selectionMode !== 'none' && {
+      onRowSelectionChange: (updater) => {
+        const newRowSelection = 
+          typeof updater === 'function' ? updater(rowSelection) : updater;
+        onRowSelectionChange?.(newRowSelection);
+      },
+    }),
   })
 
   console.log('Total Rows:', totalRows)
@@ -198,13 +249,20 @@ export function DataTable<TData extends EntityType, TValue>({
     })
   }
 
-  const selectedRowsCount = Object.keys(rowSelection).length
-  const entityTypeTitle = entityType === 'loadBalancer' ? 'Load balancing' : 'Compute Engine'
+
+  const handleRowClick = (rowId: string) => {
+    if (selectionMode === 'highlight') {
+      const newSelection = {
+        [rowId]: true
+      }
+      onRowSelectionChange(newSelection)
+    }
+  }
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between py-1">
-        <div className="text-base font-medium">{entityTypeTitle}</div>
+        <div className="text-base font-medium">{title || entityType}</div>
         <div className="flex items-center gap-0.5">
           {primaryAction && (
             <Button 
@@ -313,7 +371,18 @@ export function DataTable<TData extends EntityType, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="h-8"
+                  className={cn(
+                    "h-8",
+                    selectionMode === 'highlight' && [
+                      "cursor-pointer",
+                      "hover:bg-gray-50",
+                      rowSelection[row.original.Id] && [
+                        "bg-blue-50",
+                        "hover:bg-blue-100"
+                      ]
+                    ]
+                  )}
+                  onClick={() => selectionMode === 'highlight' && handleRowClick(row.original.Id)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell 
@@ -328,7 +397,7 @@ export function DataTable<TData extends EntityType, TValue>({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length + 1}
+                  colSpan={columns.length + (selectionMode === 'checkbox' ? 1 : 0)}
                   className="h-16 text-center"
                 >
                   No results.

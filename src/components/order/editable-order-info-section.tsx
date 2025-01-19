@@ -1,0 +1,126 @@
+"use client"
+
+import { useState } from "react"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Filter, HelpCircle, Trash2 } from 'lucide-react'
+import { LineItem } from "@/types/entities"
+import { cn } from "@/lib/utils"
+
+interface EditableOrderInfoSectionProps {
+  items: LineItem[]
+  onQuantityChange: (itemId: string, quantity: number) => void
+  onRemoveItem: (itemId: string) => void
+  onSave: () => Promise<void>
+  isSaving?: boolean
+  editable?: boolean
+}
+
+export function EditableOrderInfoSection({ 
+  items, 
+  onQuantityChange, 
+  onRemoveItem,
+  onSave,
+  isSaving = false,
+  editable = true
+}: EditableOrderInfoSectionProps) {
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const filteredItems = items.filter(item => {
+    if (!item?.item?.Name) return false
+    return item.item.Name.toLowerCase().includes(searchTerm.toLowerCase())
+  })
+
+  return (
+      <div className="p-0 h-full flex-1 flex flex-col min-h-0">
+        <div className="px-4 py-2 border-y bg-gray-50 flex-none">
+          <div className="relative flex items-center">
+            <Filter className="absolute left-2 h-3 w-3 text-muted-foreground" />
+            <span className="absolute left-6 text-xs text-muted-foreground font-medium">
+              Filter
+            </span>
+            <Input
+              type="text"
+              placeholder="Enter item name"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-16 h-7 text-xs bg-gray-100 focus-visible:ring-1 focus-visible:ring-gray-400 focus-visible:ring-offset-0"
+            />
+            <HelpCircle className="absolute right-2 h-3 w-3 text-muted-foreground" />
+          </div>
+        </div>
+        <div className="flex-1 overflow-auto min-h-0">
+          <div className="sticky top-0 grid grid-cols-[2fr,80px,80px,40px] gap-2 px-4 py-1.5 bg-muted/30 z-10">
+            <div className="text-xs font-medium">Item Name</div>
+            <div className="text-xs font-medium text-right">Quantity</div>
+            <div className="text-xs font-medium text-right">Price</div>
+            <div className="text-xs font-medium"></div>
+          </div>
+          <div>
+            {filteredItems.map((lineItem) => (
+              <div
+                key={lineItem.item.Id}
+                className="w-full px-4 py-1.5 grid grid-cols-[2fr,80px,80px,40px] gap-2 text-left hover:bg-muted/30 transition-colors items-center group"
+              >
+                <div className="text-xs">{lineItem.item.Name}</div>
+                <div className="flex justify-end">
+                  {editable ? (
+                    <Input
+                      type="number"
+                      value={lineItem.quantity}
+                      onChange={(e) => onQuantityChange(lineItem.item.Id, parseInt(e.target.value) || 0)}
+                      className="w-12 h-6 text-xs text-right p-0 border border-gray-300 rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+                      min="0"
+                    />
+                  ) : (
+                    <div className="text-xs">{lineItem.quantity}</div>
+                  )}
+                </div>
+                <div className="text-xs text-right">
+                  ${lineItem.item.UnitPrice ? lineItem.item.UnitPrice.toFixed(2) : 'N/A'}
+                </div>
+                <div className="flex justify-end">
+                  {editable && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onRemoveItem(lineItem.item.Id)}
+                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {editable && (
+          <div className="mt-auto px-4 py-3 border-t flex gap-2 bg-white flex-none">
+            <Button 
+              onClick={onSave}
+              disabled={isSaving}
+              variant="outline"
+              size="sm"
+              className={cn(
+                "font-medium transition-colors",
+                "hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600",
+                isSaving && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+            <Button 
+              variant="ghost"
+              size="sm"
+              disabled={isSaving}
+              className="text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+            >
+              Discard Changes
+            </Button>
+          </div>
+        )}
+      </div>
+  )
+} 

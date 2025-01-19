@@ -4,7 +4,7 @@ import '../globals.css'
 import { GlobalHeader } from '@/components/global-header'
 import { SearchProvider } from '@/components/search-provider'
 import { AuthProvider } from '@/context/auth-context'
-import { AuthModal } from "@/components/auth-modal"
+import { AuthModalWrapper } from "@/components/auth-modal-wrapper"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,17 +19,15 @@ export default function FranchisorLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className={`${inter.className} text-sm h-full overflow-hidden flex flex-col`}>
-        <SearchProvider>
-          {(routes) => <GlobalHeader routes={routes} />}
-        </SearchProvider>
-        <AuthProvider>
-            {children}
-            <AuthModal />
-        </AuthProvider>
-      </body>
-    </html>
+    <div className="h-full overflow-hidden flex flex-col">
+      <SearchProvider>
+        {(routes) => <GlobalHeader routes={routes} />}
+      </SearchProvider>
+      <AuthProvider>
+        {children}
+        <AuthModalWrapper />
+      </AuthProvider>
+    </div>
   )
 }
 

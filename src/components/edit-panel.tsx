@@ -3,16 +3,22 @@
 import { useEffect, useState } from "react"
 import { X } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { LoadBalancer } from "@/types/entities"
+import { EntityType, EntityFormConfig } from "@/types/entities"
 import { EditForm } from "./edit-form"
 
-interface EditPanelProps {
+interface EditPanelProps<T extends EntityType> {
   isOpen: boolean
   onClose: () => void
-  loadBalancer: LoadBalancer | null
+  entity: T | null
+  formConfig: EntityFormConfig
 }
 
-export function EditPanel({ isOpen, onClose, loadBalancer }: EditPanelProps) {
+export function EditPanel<T extends EntityType>({ 
+  isOpen, 
+  onClose, 
+  entity, 
+  formConfig 
+}: EditPanelProps<T>) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -20,49 +26,7 @@ export function EditPanel({ isOpen, onClose, loadBalancer }: EditPanelProps) {
     return () => setMounted(false)
   }, [])
 
-  if (!mounted || !loadBalancer) return null
-
-  const fields = [
-    {
-      key: "name",
-      label: "Name",
-      type: "text" as const,
-      description: "The name of the load balancer",
-      required: true
-    },
-    {
-      key: "type",
-      label: "Load balancer type",
-      type: "select" as const,
-      options: ['HTTP(S)', 'TCP', 'UDP', 'SSL Proxy', 'TCP Proxy'],
-      description: "The type of load balancer",
-      required: true
-    },
-    {
-      key: "accessType",
-      label: "Access type",
-      type: "select" as const,
-      options: ['External', 'Internal'],
-      description: "Whether the load balancer is externally or internally accessible",
-      required: true
-    },
-    {
-      key: "protocols",
-      label: "Protocols",
-      type: "select" as const,
-      options: ['HTTP', 'HTTPS', 'TCP', 'UDP', 'SSL'],
-      description: "The protocols supported by this load balancer",
-      required: true
-    },
-    {
-      key: "region",
-      label: "Region",
-      type: "select" as const,
-      options: ['us-central1', 'us-east1', 'us-west1', 'europe-west1', 'asia-east1'],
-      description: "The region where the load balancer is deployed",
-      required: true
-    }
-  ]
+  if (!mounted || !entity) return null
 
   const handleSave = (values: Record<string, any>) => {
     console.log('Saving changes:', values)
@@ -88,7 +52,7 @@ export function EditPanel({ isOpen, onClose, loadBalancer }: EditPanelProps) {
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b px-6 py-3">
-            <h2 className="text-lg font-semibold">Edit access to "{loadBalancer.name}"</h2>
+            <h2 className="text-lg font-semibold">Edit access to &quot;{formConfig.title}&quot;</h2>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -100,10 +64,10 @@ export function EditPanel({ isOpen, onClose, loadBalancer }: EditPanelProps) {
           </div>
           <div className="flex-1 overflow-auto p-6">
             <EditForm
-              title="Load Balancer"
-              description="Configure the load balancer settings"
-              fields={fields}
-              values={loadBalancer}
+              title={formConfig.title}
+              description={formConfig.description}
+              fields={formConfig.fields}
+              values={entity}
               onSave={handleSave}
               onCancel={onClose}
             />

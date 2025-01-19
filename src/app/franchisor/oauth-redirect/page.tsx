@@ -1,16 +1,20 @@
 // src/app/franchisor/oauth-redirect/page.tsx
 'use client'
 
+import { Suspense } from 'react'
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function OAuthRedirect() {
+function OAuthRedirectContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const handleOAuthRedirect = async () => {
+      // Only run in browser environment
+      if (typeof window === 'undefined') return
+
       const code = searchParams.get('code')
       const realmId = searchParams.get('realmId')
     //   const state = searchParams.get('state')
@@ -74,5 +78,20 @@ export default function OAuthRedirect() {
         <p className="text-gray-600">Please wait while we complete your login...</p>
       </div>
     </div>
+  )
+}
+
+export default function OAuthRedirect() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading</h1>
+          <p className="text-gray-600">Please wait...</p>
+        </div>
+      </div>
+    }>
+      <OAuthRedirectContent />
+    </Suspense>
   )
 }

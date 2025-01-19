@@ -29,7 +29,7 @@ export function UnauthorizedModal() {
         <DialogHeader>
           <DialogTitle>Access Denied</DialogTitle>
           <DialogDescription>
-            Your account doesn't have permission to access the franchisor portal. Please log in with a franchisor account or visit the franchisee portal.
+            Your account doesn&apos;t have permission to access the franchisor portal. Please log in with a franchisor account or visit the franchisee portal.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex gap-2 sm:gap-0">

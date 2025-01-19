@@ -32,9 +32,6 @@ const CommandItem = forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<ty
       className="cursor-pointer aria-selected:bg-accent aria-selected:text-accent-foreground"
       onSelect={(value) => {
         props.onSelect?.(value)
-        if (typeof children === 'function') {
-          children(value)
-        }
       }}
     >
       {children}
@@ -50,20 +47,21 @@ interface GlobalHeaderProps {
 const siteTitle = 'Ordrport Dashboard';
 
 const recentSearches = [
-  { query: "cloud run", timestamp: new Date() },
-  { query: "load balancer", timestamp: new Date() },
+  { query: "orders", timestamp: new Date() },
+  // { query: "cloud run", timestamp: new Date() },
+  // { query: "load balancer", timestamp: new Date() },
 ]
 
-const aiFeatures = [
-  {
-    id: 'gemini',
-    title: 'Ask Gemini',
-    description: 'Chat with an AI companion to get comprehensive answers to any topic related to Google Cloud',
-    icon: Bot,
-    url: '/gemini',
-    type: 'ai' as const
-  }
-]
+// const aiFeatures = [
+//   {
+//     id: 'gemini',
+//     title: 'Ask Gemini',
+//     description: 'Chat with an AI companion to get comprehensive answers to any topic related to Google Cloud',
+//     icon: Bot,
+//     url: '/gemini',
+//     type: 'ai' as const
+//   }
+// ]
 
 export function GlobalHeader({ routes = [] }: GlobalHeaderProps) {
   const [open, setOpen] = useState(false)
@@ -90,7 +88,7 @@ export function GlobalHeader({ routes = [] }: GlobalHeaderProps) {
 
   const serviceRoutes = routes.filter(route => route.type === 'service')
   const adminRoutes = routes.filter(route => route.type === 'admin')
-  const allRoutes = [...serviceRoutes, ...adminRoutes, ...aiFeatures]
+  const allRoutes = [...serviceRoutes, ...adminRoutes]
 
   const runCommand = useCallback((url: string) => {
     setOpen(false)
@@ -184,20 +182,20 @@ export function GlobalHeader({ routes = [] }: GlobalHeaderProps) {
                   </CommandGroup>
                 )}
                 <CommandSeparator />
-                <CommandGroup heading="GEMINI">
+                {/* <CommandGroup heading="GEMINI">
                   {aiFeatures.map((feature, index) => (
                     <CommandItem
                       key={feature.id}
                       onSelect={() => runCommand(feature.url)}
                     >
                       {/* <feature.icon className="mr-2 h-4 w-4" /> */}
-                      <div className="flex flex-col">
-                        <span>{feature.title}</span>
-                        <span className="text-xs text-muted-foreground">{feature.description}</span>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                      {/* <div className="flex flex-col"> */}
+                        {/* <span>{feature.title}</span> */}
+                        {/* <span className="text-xs text-muted-foreground">{feature.description}</span> */}
+                      {/* </div> */}
+                    {/* </CommandItem> */}
+                  {/* ))} */}
+                {/* </CommandGroup> */}
                 {adminRoutes.length > 0 && (
                   <>
                     <CommandSeparator />

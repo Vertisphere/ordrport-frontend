@@ -1,96 +1,137 @@
-import { TypeIcon as type, LucideIcon, CheckCircle, XCircle } from 'lucide-react'
+import { TypeIcon as type, LucideIcon, CheckCircle, XCircle, FileText, FileEdit, RotateCcw, Archive, Plus } from 'lucide-react'
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
-export interface LoadBalancer {
-  id: string
-  name: string
-  type: string
-  accessType: string
-  protocols: string
-  region: string
-  backends: {
-    count: number
-    instanceGroups: number
-    networkEndpointGroups: number
-    healthy: boolean
+export interface InvoiceInfo {
+  invoice: {
+    Id: string
+    SyncToken: string
+    MetaData: {
+      CreateTime: string
+      LastUpdatedTime: string
+    }
+    DocNumber: string
+    TxnDate: string
+    Line: Array<{
+      Id: string
+      LineNum: number
+      Amount: number
+      DetailType: string
+      SalesItemLineDetail?: {
+        ItemRef: {
+          value: string
+          name: string
+        }
+        Qty: number
+        ItemAccountRef: {
+          value: string
+          name: string
+        }
+        TaxCodeRef: {
+          value: string
+        }
+        ServiceDate: string
+      }
+    }>
+    TxnTaxDetail: {
+      TotalTax: number
+      TaxLine: Array<{
+        Amount: number
+        DetailType: string
+        TaxLineDetail: {
+          PercentBased: boolean
+          NetAmountTaxable: number
+          TaxPercent: number
+          TaxRateRef: {
+            value: string
+          }
+        }
+      }>
+    }
+    CustomerRef: {
+      value: string
+      name: string
+    }
+    DueDate: string
+    TotalAmt: number
+    CurrencyRef: {
+      value: string
+      name: string
+    }
+    ExchangeRate: number
+    HomeBalance: number
+    PrintStatus: string
+    EmailStatus: string
+    Balance: number
   }
 }
 
-export interface ComputeEngine {
-  id: string
-  name: string
-  zone: string
-  machineType: string
-  internalIP: string
-  externalIP: string
-  status: 'Running' | 'Stopped'
+export interface LineItem {
+  item: {
+    Id: string
+    Name: string
+    UnitPrice: number
+    SalesTaxCodeRef: {
+      value: string
+    }
+  }
+  quantity: number
 }
 
-export type EntityType = LoadBalancer | ComputeEngine | Franchisee
+export interface Invoice {
+  Id: string
+  CustomerRef: {
+    value: string
+    name: string
+  }
+  DocNumber: string
+  TxnDate: string
+  TotalAmt: number
+  Balance: number
+}
+
+export interface Item {
+  Id: string
+  Name: string
+  Sku: string
+  Description: string
+  Active: boolean
+  UnitPrice: number
+  Type: string
+  QtyOnHand: number
+  MetaData: {
+    CreateTime: string
+    LastUpdatedTime: string
+  }
+  IncomeAccountRef: {
+    value: string
+    name: string
+  }
+  ExpenseAccountRef: {
+    value: string
+    name: string
+  }
+  AssetAccountRef: {
+    value: string
+    name: string
+  }
+  SalesTaxCodeRef: {
+    value: string
+  }
+}
+
+export type EntityType =  Franchisee | Invoice | Item | InvoiceInfo
 
 export interface ColumnDefinition<T> {
-  accessorKey: keyof T
+  accessorKey: keyof T | string
   id?: string
   header: string
   filterable: boolean
   sortable: boolean
-  visible: boolean
+  visible?: boolean
   cell?: (value: any) => React.ReactNode
 }
-export const loadBalancerColumns: ColumnDefinition<LoadBalancer>[] = [
-  { accessorKey: "name", header: "Name", filterable: true, sortable: true, visible: true },
-  { accessorKey: "type", header: "Load balancer type", filterable: true, sortable: true, visible: true },
-  { accessorKey: "accessType", header: "Access type", filterable: true, sortable: true, visible: true },
-  { accessorKey: "protocols", header: "Protocols", filterable: true, sortable: true, visible: true },
-  { accessorKey: "region", header: "Region", filterable: true, sortable: true, visible: true },
-  { 
-    accessorKey: "backends", 
-    header: "Backends", 
-    filterable: false, 
-    sortable: false,
-    visible: true,
-    cell: (value: LoadBalancer['backends']) => (
-      <div className="flex items-center gap-0.5 text-xs">
-        {value.healthy ? (
-          <CheckCircle className="h-3 w-3 text-green-500" />
-        ) : (
-          <XCircle className="h-3 w-3 text-red-500" />
-        )}
-        <span>
-          {value.count} backend ({value.instanceGroups} IG, {value.networkEndpointGroups} NEG)
-        </span>
-      </div>
-    )
-  },
-]
 
-export const statusIcons: Record<ComputeEngine['status'], LucideIcon> = {
-  'Running': CheckCircle,
-  'Stopped': XCircle,
-}
-
-export const computeEngineColumns: ColumnDefinition<ComputeEngine>[] = [
-  { accessorKey: "name", header: "Name", filterable: true, sortable: true, visible: true },
-  { accessorKey: "machineType", header: "Machine Type", filterable: true, sortable: true, visible: true },
-  { accessorKey: "zone", header: "Zone", filterable: true, sortable: true, visible: true },
-  { 
-    accessorKey: "status", 
-    header: "Status", 
-    filterable: true, 
-    sortable: true,
-    visible: true,
-    cell: (value: ComputeEngine['status']) => {
-      const Icon = statusIcons[value]
-      return (
-        <div className="flex items-center gap-2">
-          <Icon className={value === 'Running' ? 'text-green-500' : 'text-red-500'} size={16} />
-          <span>{value}</span>
-        </div>
-      )
-    }
-  },
-  { accessorKey: "internalIP", header: "Internal IP", filterable: true, sortable: true, visible: true },
-  { accessorKey: "externalIP", header: "External IP", filterable: true, sortable: true, visible: true },
-]
 export interface Franchisee {
   Id: string
   SyncToken: string
@@ -131,6 +172,58 @@ export interface Franchisee {
   qb_company_id: string
   firebase_id: string
   created_at: string
+}
+
+export interface FormField {
+  key: string
+  label: string
+  type: 'text' | 'select' | 'number' | 'date' | 'boolean'
+  description?: string
+  required?: boolean
+  options?: string[]
+}
+
+export interface EntityFormConfig {
+  fields: FormField[]
+  title: string
+  description: string
+}
+
+export const franchiseeFormConfig: EntityFormConfig = {
+  title: "Franchisee",
+  description: "Configure franchisee settings",
+  fields: [
+    {
+      key: "GivenName",
+      label: "Given Name",
+      type: "text",
+      description: "First name of the franchisee",
+      required: true
+    },
+    {
+      key: "FamilyName",
+      label: "Family Name",
+      type: "text",
+      description: "Last name of the franchisee",
+      required: true
+    },
+    {
+      key: "Active",
+      label: "Status",
+      type: "select",
+      options: ['Active', 'Inactive'],
+      description: "Current status of the franchisee",
+      required: true
+    },
+    {
+      key: "PrimaryEmailAddr.Address",
+      label: "Email Address",
+      type: "text",
+      description: "Primary contact email",
+      required: true
+    },
+    // Add more fields as needed
+  ]
 }
 
 export const franchiseeColumns: ColumnDefinition<Franchisee>[] = [
@@ -266,35 +359,209 @@ export const franchiseeColumns: ColumnDefinition<Franchisee>[] = [
     cell: (value: number) => `$${value.toFixed(2)}`,
     visible: false
   },
+  // {
+  //   accessorKey: "qb_customer_id",
+  //   header: "QB Customer ID",
+  //   filterable: true,
+  //   sortable: true,
+  //   visible: false
+  // },
+  // {
+  //   accessorKey: "qb_company_id",
+  //   header: "QB Company ID",
+  //   filterable: false,
+  //   sortable: true,
+  //   visible: false
+  // },
   {
-    accessorKey: "qb_customer_id",
-    header: "QB Customer ID",
+    accessorKey: "firebase_id",
+    header: "Is Linked",
+    filterable: false,
+    sortable: false,
+    visible: true,
+    cell: (value: string) => value ? <CheckCircle className="h-3 w-3 text-green-500" /> : <XCircle className="h-3 w-3 text-red-500" />,
+  },
+  // {
+  //   accessorKey: "created_at",
+  //   header: "Created At",
+  //   filterable: true,
+  //   sortable: true,
+  //   cell: (value: string) => new Date(value).toLocaleString(),
+  //   visible: false
+  // }
+]
+
+const INVOICE_STATUS = {
+  DRAFT: { icon: FileText, label: 'Draft', color: 'text-gray-500' },
+  PENDING: { icon: FileEdit, label: 'Pending', color: 'text-yellow-500' },
+  APPROVED: { icon: CheckCircle, label: 'Approved', color: 'text-green-500' },
+  REVISION: { icon: RotateCcw, label: 'Revision', color: 'text-orange-500' },
+  VOID: { icon: XCircle, label: 'Void', color: 'text-red-500' },
+  COMPLETE: { icon: Archive, label: 'Complete', color: 'text-blue-500' },
+}
+
+export const getInvoiceStatus = (docNumber: string) => {
+  const prefix = docNumber.substring(0, 8);
+  
+  switch (prefix) {
+    case 'A1000000':
+      return INVOICE_STATUS.DRAFT;
+    case 'A0100000':
+      return INVOICE_STATUS.PENDING;
+    case 'A0010000':
+      return INVOICE_STATUS.APPROVED;
+    case 'A0001000':
+      return INVOICE_STATUS.REVISION;
+    case 'A0000100':
+      return INVOICE_STATUS.VOID;
+    case 'A0000010':
+      return INVOICE_STATUS.COMPLETE;
+    default:
+      return INVOICE_STATUS.DRAFT;
+  }
+}
+
+export const invoiceColumns: ColumnDefinition<Invoice>[] = [
+  {
+    accessorKey: "Id",
+    header: "ID",
+    filterable: true,
+    sortable: true,
+    visible: true,
+    // cell: (value: string) => (
+    //   <Link 
+    //     href={`/franchisee/orders/${value}`}
+    //     className="text-blue-600 text-decoration-line-underline"
+    //     style={{ textDecoration: 'underline' }}
+    //   >
+    //     {value}
+    //   </Link>
+    // )
+  },
+  {
+    accessorKey: "CustomerRef",
+    header: "Customer",
+    filterable: false,
+    sortable: false,
+    visible: true,
+    cell: (value: Invoice['CustomerRef']) => value.name
+  },
+  {
+    accessorKey: "DocNumber",
+    header: "Document Number",
     filterable: true,
     sortable: true,
     visible: false
   },
   {
-    accessorKey: "qb_company_id",
-    header: "QB Company ID",
+    accessorKey: "TxnDate",
+    header: "Date",
     filterable: false,
     sortable: true,
-    visible: false
+    visible: true,
+    cell: (value: string) => new Date(value).toLocaleDateString()
   },
   {
-    accessorKey: "firebase_id",
-    header: "Firebase ID",
+    accessorKey: "TotalAmt",
+    header: "Total Amount",
     filterable: false,
+    sortable: true,
+    visible: true,
+    cell: (value: number) => `$${value.toFixed(2)}`
+  },
+  {
+    accessorKey: "Balance",
+    header: "Balance",
+    filterable: false,
+    sortable: true,
+    visible: true,
+    cell: (value: number) => `$${value.toFixed(2)}`
+  },
+  {
+    accessorKey: "DocNumber",
+    id: "status",
+    header: "Status",
+    filterable: false,
+    sortable: false,
+    visible: true,
+    cell: (value: string) => {
+      let status;
+      const prefix = value.substring(0, 8);
+      
+      switch (prefix) {
+        case 'A1000000':
+          status = INVOICE_STATUS.DRAFT;
+          break;
+        case 'A0100000':
+          status = INVOICE_STATUS.PENDING;
+          break;
+        case 'A0010000':
+          status = INVOICE_STATUS.APPROVED;
+          break;
+        case 'A0001000':
+          status = INVOICE_STATUS.REVISION;
+          break;
+        case 'A0000100':
+          status = INVOICE_STATUS.VOID;
+          break;
+        case 'A0000010':
+          status = INVOICE_STATUS.COMPLETE;
+          break;
+        default:
+          status = INVOICE_STATUS.DRAFT;
+      }
+
+      const Icon = status.icon;
+      
+      return (
+        <div className="flex items-center gap-2">
+          <Icon className={`h-4 w-4 ${status.color}`} />
+          <span>{status.label}</span>
+        </div>
+      );
+    }
+  },
+]
+
+export const itemColumns: ColumnDefinition<Item>[] = [
+  {
+    accessorKey: "Id",
+    header: "ID",
+    filterable: true,
     sortable: true,
     visible: true
   },
   {
-    accessorKey: "created_at",
-    header: "Created At",
+    accessorKey: "Name",
+    header: "Name",
     filterable: true,
     sortable: true,
-    cell: (value: string) => new Date(value).toLocaleString(),
-    visible: false
+    visible: true
+  },
+  {
+    accessorKey: "Sku",
+    header: "SKU",
+    filterable: true,
+    sortable: false,
+    visible: true
+  },
+  {
+    accessorKey: "UnitPrice",
+    header: "Unit Price",
+    filterable: false,
+    sortable: true,
+    visible: true,
+    cell: (value: number) => `$${value.toFixed(2)}`
+  },
+  {
+    accessorKey: "QtyOnHand",
+    header: "Quantity",
+    filterable: false,
+    sortable: false,
+    visible: true
   }
 ]
+
+export type InvoiceStatus = keyof typeof INVOICE_STATUS;
 
 

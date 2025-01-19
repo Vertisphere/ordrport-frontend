@@ -1,10 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { X, ChevronRight, Grid, LayoutGrid, Settings, ShoppingCart, Terminal, Shield, Database, Box } from 'lucide-react'
+import { X, ChevronRight, Grid, LayoutGrid, Settings, ShoppingCart, Terminal, Shield, Database, Box, ClipboardList, Receipt, Package, Users } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { useAuth } from "@/context/auth-context"
+import { usePathname } from 'next/navigation'
 
 interface MenuItem {
   icon: React.ElementType
@@ -14,21 +16,63 @@ interface MenuItem {
   submenu?: MenuItem[]
 }
 
-const menuItems: MenuItem[] = [
-  {
-    icon: Grid,
-    title: "Cloud overview",
-    href: "/overview"
-  },
-  {
-    icon: LayoutGrid,
-    title: "Solutions",
-    submenu: [
-      { icon: Terminal, title: "Developer solutions", href: "/solutions/developer" },
-      { icon: Shield, title: "Security solutions", href: "/solutions/security" }
-    ]
-  }
-]
+const getBaseItems = (pathname: string): MenuItem[] => {
+  const isFranchisorPath = pathname.startsWith('/franchisor')
+  const isFranchiseePath = pathname.startsWith('/franchisee')
+  const baseUrl = isFranchisorPath ? '/franchisor' : isFranchiseePath ? '/franchisee' : ''
+  
+  return [
+    {
+      icon: ClipboardList,
+      title: "Orders",
+      href: `${baseUrl}/orders`,
+      ...(isFranchisorPath && {
+        submenu: [
+          { 
+            icon: ClipboardList, 
+            title: "All Orders", 
+            href: `${baseUrl}/orders` 
+          },
+          { 
+            icon: Box, 
+            title: "Pending Review", 
+            href: `${baseUrl}/orders/pending-review` 
+          },
+          { 
+            icon: Package, 
+            title: "Orders In Preparation", 
+            href: `${baseUrl}/orders/in-preparation` 
+          }
+        ]
+      })
+    },
+    {
+      icon: Receipt,
+      title: "Invoices",
+      href: `${baseUrl}/invoices`
+    }
+  ]
+}
+
+const getFranchisorItems = (pathname: string): MenuItem[] => {
+  const isFranchisorPath = pathname.startsWith('/franchisor')
+  const baseUrl = isFranchisorPath ? '/franchisor' : ''
+  
+  return [
+    {
+      icon: Package,
+      title: "Items",
+      href: `${baseUrl}/items`,
+      isPinned: true
+    },
+    {
+      icon: Users,
+      title: "Franchisees",
+      href: `${baseUrl}/franchisees`,
+      isPinned: true
+    }
+  ]
+}
 
 const pinnedProducts: MenuItem[] = [
   {
@@ -61,6 +105,8 @@ interface MenuItemPosition {
 }
 
 export function NavigationMenu({ isOpen, onClose }: NavigationMenuProps) {
+  const { user } = useAuth()
+  const pathname = usePathname()
   const [mounted, setMounted] = React.useState(false)
   const [activeSubmenu, setActiveSubmenu] = React.useState<string | null>(null)
   const [menuItemPositions, setMenuItemPositions] = React.useState<Record<string, MenuItemPosition>>({})
@@ -226,7 +272,7 @@ export function NavigationMenu({ isOpen, onClose }: NavigationMenuProps) {
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b px-4 py-3">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="./dashboard" className="flex items-center gap-2">
               <span className="text-2xl font-semibold text-blue-600">Ordrport</span>
             </Link>
             <Button
@@ -240,16 +286,15 @@ export function NavigationMenu({ isOpen, onClose }: NavigationMenuProps) {
           </div>
           <div className="flex-1 overflow-auto">
             <nav className="p-2">
-              {menuItems.map((item) => renderMenuItem(item))}
-              <div className="mt-6 mb-2">
-                <div className="px-3 py-2 text-xs font-medium text-gray-500 flex items-center justify-between">
-                  PINNED PRODUCTS
-                  <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
-                    <Settings className="h-3.5 w-3.5" />
-                  </Button>
+              {getBaseItems(pathname).map((item) => renderMenuItem(item))}
+              {user?.isFranchisor && (
+                <div className="mt-6 mb-2">
+                  <div className="px-3 py-2 text-xs font-medium text-gray-500">
+                    FRANCHISOR PAGES
+                  </div>
+                  {getFranchisorItems(pathname).map((item) => renderMenuItem(item))}
                 </div>
-                {pinnedProducts.map((item) => renderMenuItem(item))}
-              </div>
+              )}
             </nav>
           </div>
         </div>
