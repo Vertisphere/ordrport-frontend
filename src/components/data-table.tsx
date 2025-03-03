@@ -108,7 +108,7 @@ export function DataTable<TData extends EntityType & { Id: string }, TValue>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     columns.reduce((acc, column) => ({
       ...acc,
-      [column.accessorKey]: column.visible ?? true
+      [column.id || column.accessorKey]: column.visible ?? true
     }), {})
   )
 
@@ -116,13 +116,7 @@ export function DataTable<TData extends EntityType & { Id: string }, TValue>({
     () => [
       selectionMode === 'checkbox' && {
         id: "select",
-        header: ({ table }: { table: any }) => (
-          <Checkbox
-            checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-          />
-        ),
+        header: () => null,
         cell: ({ row }: { row: Row<TData> }) => (
           <Checkbox
             checked={rowSelection[row.original.Id]}
@@ -140,6 +134,7 @@ export function DataTable<TData extends EntityType & { Id: string }, TValue>({
         enableHiding: false,
       },
       ...columns.map(col => ({
+        id: col.id || col.accessorKey,
         accessorKey: col.accessorKey as string,
         header: col.header,
         cell: col.cell 
@@ -369,8 +364,8 @@ export function DataTable<TData extends EntityType & { Id: string }, TValue>({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+                  key={row.original.Id}
+                  data-state={rowSelection[row.original.Id] && "selected"}
                   className={cn(
                     "h-8",
                     selectionMode === 'highlight' && [

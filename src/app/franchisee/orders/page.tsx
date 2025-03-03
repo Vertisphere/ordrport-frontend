@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation"
 import { FilterItem } from "@/components/advanced-filter"
 import { OrderSheet } from "@/components/order/order-sheet"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/use-toast"
 
 const sidebarItems = [
   { title: "Orders", href: "/franchisee/orders", isActive: true },
@@ -19,6 +20,7 @@ const sidebarItems = [
 
 export default function FranchiseeOrdersPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({})
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
@@ -79,7 +81,7 @@ export default function FranchiseeOrdersPage() {
 
       const queryString = buildQueryString(pageSize, pageIndex + 1, sorting, filters)
       const response = await fetch(
-        `https://api.ordrport.com/qbInvoices?${queryString}`,
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoices?${queryString}`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`
@@ -122,8 +124,39 @@ export default function FranchiseeOrdersPage() {
     })
   }
 
-  const handleDelete = () => {
-    console.log("Delete clicked")
+  const handleDelete = async () => {
+    const selectedId = Object.keys(selectedRows).find(id => selectedRows[id])
+    if (!selectedId) return
+
+    setIsLoading(true)
+    try {
+      const jwt = localStorage.getItem('jwt')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice:void/${selectedId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${jwt}`
+        }
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        toast({
+          title: "Order Deleted",
+          description: "The order has been successfully deleted.",
+          variant: "default",
+        })
+        handleRefresh()
+      }
+    } catch (error) {
+      console.error('Error deleting order:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete the order. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const selectedRowsCount = Object.values(selectedRows).filter(Boolean).length
@@ -158,8 +191,8 @@ export default function FranchiseeOrdersPage() {
         const selectedId = Object.keys(selectedRows)[0]
         try {
           const jwt = localStorage.getItem('jwt')
-          const response = await fetch(`https://api.ordrport.com/qbInvoice:duplicate/${selectedId}`, {
-            method: 'POST',
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice:duplicate/${selectedId}`, {
+            method: 'GET',
             headers: {
               Authorization: `Bearer ${jwt}`
             }
@@ -167,10 +200,20 @@ export default function FranchiseeOrdersPage() {
           
           const data = await response.json()
           if (data.success) {
-            router.push(`/franchisee/orders/${data.id}`)
+            toast({
+              title: "Order Duplicated",
+              description: "The order has been successfully duplicated.",
+              variant: "default",
+            })
+            handleRefresh()
           }
         } catch (error) {
           console.error('Error duplicating order:', error)
+          toast({
+            title: "Error",
+            description: "Failed to duplicate the order. Please try again.",
+            variant: "destructive",
+          })
         }
       },
       icon: Copy,
@@ -234,7 +277,7 @@ export default function FranchiseeOrdersPage() {
                 try {
                   setIsCreatingOrder(true)
                   const jwt = localStorage.getItem('jwt')
-                  const response = await fetch('https://api.ordrport.com/qbInvoice:create', {
+                  const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice:create`, {
                     method: 'GET',
                     headers: {
                       Authorization: `Bearer ${jwt}`

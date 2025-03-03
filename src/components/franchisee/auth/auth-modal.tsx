@@ -31,7 +31,7 @@ export function AuthModal() {
     setError(null)
 
     try {
-      const response = await fetch('https://api.ordrport.com/franchisee/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/franchisee/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

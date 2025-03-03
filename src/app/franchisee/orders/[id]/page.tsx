@@ -40,7 +40,7 @@ export default function OrderPage() {
           return
         }
 
-        const response = await fetch(`https://api.ordrport.com/qbInvoice/${params.id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice/${params.id}`, {
           headers: {
             Authorization: `Bearer ${jwt}`
           }
@@ -105,7 +105,7 @@ export default function OrderPage() {
 
       const queryString = buildQueryString(pageSize, pageIndex + 1, sorting, filters)
       const response = await fetch(
-        `https://api.ordrport.com/qbItems?${queryString}`,
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbItems?${queryString}`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`
@@ -192,7 +192,7 @@ export default function OrderPage() {
       if (!jwt) return
 
       const response = await fetch(
-        `https://api.ordrport.com/qbInvoice:modify/${params.id}`,
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice:modify/${params.id}`,
         {
           method: 'POST',
           headers: {
@@ -293,11 +293,11 @@ export default function OrderPage() {
                   buttonColor: "bg-blue-600 hover:bg-blue-700",
                   opensModal: true,
                   modalTitle: "Submit Order", 
-                  modalDescription: "This will send an order request to your franchiser. Are you sure you want to proceed?",
+                  modalDescription: "This will send an order request to your franchisor. Are you sure you want to proceed?",
                   onSubmit: async () => {
                     const jwt = localStorage.getItem('jwt')
                     if (!jwt) return
-                    const response = await fetch(`https://api.ordrport.com/qbInvoice:publish/${params.id}`, {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice:publish/${params.id}`, {
                       headers: {
                         Authorization: `Bearer ${jwt}`
                       }

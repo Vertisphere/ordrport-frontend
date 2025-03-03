@@ -13,7 +13,7 @@ export default function InvoicePDFPage() {
     const fetchPDF = async () => {
       try {
         const jwt = localStorage.getItem('jwt')
-        const response = await fetch(`https://api.ordrport.com/qbInvoicePDF/${params.id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoicePDF/${params.id}`, {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
@@ -38,7 +38,7 @@ export default function InvoicePDFPage() {
         URL.revokeObjectURL(pdfUrl)
       }
     }
-  }, [params.id, pdfUrl])
+  }, [])
 
   return (
     <>

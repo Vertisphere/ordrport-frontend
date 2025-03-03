@@ -22,7 +22,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import Link from 'next/link'
 
 const CommandItem = forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<typeof CommandItemOriginal>>(
   ({ children, ...props }, forwardedRef) => (
@@ -107,7 +109,12 @@ export function GlobalHeader({ routes = [] }: GlobalHeaderProps) {
           <Menu className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-2">
-          <span className="text-2xl font-semibold text-blue-600">Ordrport</span>
+          <Link 
+            href={pathname.startsWith('/franchisor') ? '/franchisor/dashboard' : '/franchisee/dashboard'} 
+            className="flex items-center gap-2"
+          >
+            <span className="text-2xl font-semibold text-blue-600">Ordrport</span>
+          </Link>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -220,21 +227,31 @@ export function GlobalHeader({ routes = [] }: GlobalHeaderProps) {
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <Bell className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <HelpCircle className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <Settings className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <MoreVertical className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9 bg-rose-600 text-white hover:bg-rose-700 hover:text-white ml-1">
-            <span className="text-sm font-medium">S</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9 bg-rose-600 text-white hover:bg-rose-700 hover:text-white ml-1">
+                <span className="text-sm font-medium">O</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {/* <DropdownMenuItem onClick={() => router.push('/profile')}>
+                Profile
+              </DropdownMenuItem> */}
+              {/* <DropdownMenuItem onClick={() => router.push('/settings')}>
+                Settings
+              </DropdownMenuItem> */}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => {
+                // Add your logout logic here
+                localStorage.removeItem('jwt');
+                // refresh
+                window.location.reload();
+                // router.push('/auth/logout')
+              }}>
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <NavigationMenu 

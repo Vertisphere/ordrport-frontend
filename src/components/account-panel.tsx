@@ -32,7 +32,7 @@ export function AccountPanel({ isOpen, onClose, franchisee, defaultEmail, onSucc
     try {
       setIsLoading(true)
       const jwt = localStorage.getItem('jwt')
-      const response = await fetch('https://api.ordrport.com/customer', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/customer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

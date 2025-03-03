@@ -1,0 +1,17 @@
+version: 3
+
+tasks:
+  deploy_fe:
+    desc: "build local postgres instance"
+    cmds:
+      - docker build --platform linux/amd64 -t northamerica-northeast2-docker.pkg.dev/ordrport-nonprod/ordrport-nonprod-registry/ordrport-fe:latest .
+      - docker push northamerica-northeast2-docker.pkg.dev/ordrport-nonprod/ordrport-nonprod-registry/ordrport-fe:latest
+      # - gcloud run deploy ordrport-fe --image northamerica-northeast2-docker.pkg.dev/ordrport-nonprod/ordrport-nonprod-registry/ordrport-fe:latest --platform managed --region northamerica-northeast2 --port 3000 --no-allow-unauthenticated
+  deploy_fe_prod:
+    desc: "build local postgres instance"
+    cmds:
+      - docker build --platform linux/amd64 -t northamerica-northeast2-docker.pkg.dev/ordrport-prod/ordrport-prod-registry/ordrport-fe:latest .
+      - docker push northamerica-northeast2-docker.pkg.dev/ordrport-prod/ordrport-prod-registry/ordrport-fe:latest
+      # - gcloud run deploy ordrport-fe --image northamerica-northeast2-docker.pkg.dev/ordrport-nonprod/ordrport-nonprod-registry/ordrport-fe:latest --platform managed --region northamerica-northeast2 --port 3000 --no-allow-unauthenticated
+
+

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useAuth } from "@/context/auth-context"
 import { usePathname } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
 
 interface MenuItem {
   icon: React.ElementType
@@ -143,6 +144,13 @@ export function NavigationMenu({ isOpen, onClose }: NavigationMenuProps) {
     }
   }, [isOpen])
 
+  // Add this effect to clear submenu when main menu closes
+  React.useEffect(() => {
+    if (!isOpen) {
+      setActiveSubmenu(null)
+    }
+  }, [isOpen])
+
   const updateMenuItemPositions = () => {
     const positions: Record<string, MenuItemPosition> = {}
     Object.entries(menuRefs.current).forEach(([title, ref]) => {
@@ -175,19 +183,28 @@ export function NavigationMenu({ isOpen, onClose }: NavigationMenuProps) {
     // Check if we're moving between menu item and submenu
     if (submenuRef.current) {
       const submenuRect = submenuRef.current.getBoundingClientRect()
-      const isMovingToSubmenu = e.clientX >= submenuRect.left && 
-                               e.clientX <= submenuRect.right && 
-                               e.clientY >= submenuRect.top && 
-                               e.clientY <= submenuRect.bottom
+      const menuRect = e.currentTarget.getBoundingClientRect()
+      
+      // Create a combined area that includes both the menu item and submenu
+      const combinedArea = {
+        left: Math.min(menuRect.left, submenuRect.left),
+        right: Math.max(menuRect.right, submenuRect.right),
+        top: Math.min(menuRect.top, submenuRect.top),
+        bottom: Math.max(menuRect.bottom, submenuRect.bottom)
+      }
 
-      if (isMovingToSubmenu) {
+      // Check if the mouse is still within the combined area
+      const isInCombinedArea = e.clientX >= combinedArea.left && 
+                              e.clientX <= combinedArea.right && 
+                              e.clientY >= combinedArea.top && 
+                              e.clientY <= combinedArea.bottom
+
+      if (isInCombinedArea) {
         return
       }
     }
 
-    hoverTimeoutRef.current = setTimeout(() => {
-      setActiveSubmenu(null)
-    }, 100)
+    setActiveSubmenu(null)
   }
 
   if (!mounted) return null
@@ -256,6 +273,7 @@ export function NavigationMenu({ isOpen, onClose }: NavigationMenuProps) {
         "fixed inset-0 z-[150] transition-all duration-300",
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       )}
+      onMouseLeave={() => setActiveSubmenu(null)}
     >
       <div
         className={cn(
@@ -272,7 +290,10 @@ export function NavigationMenu({ isOpen, onClose }: NavigationMenuProps) {
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b px-4 py-3">
-            <Link href="./dashboard" className="flex items-center gap-2">
+            <Link 
+              href={pathname.startsWith('/franchisor') ? '/franchisor/dashboard' : '/franchisee/dashboard'} 
+              className="flex items-center gap-2"
+            >
               <span className="text-2xl font-semibold text-blue-600">Ordrport</span>
             </Link>
             <Button

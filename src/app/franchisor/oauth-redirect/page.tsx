@@ -2,18 +2,20 @@
 'use client'
 
 import { Suspense } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 function OAuthRedirectContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
+  const isAuthenticating = useRef(false)
 
   useEffect(() => {
     const handleOAuthRedirect = async () => {
-      // Only run in browser environment
-      if (typeof window === 'undefined') return
+      // Only run in browser environment and prevent duplicate calls
+      if (typeof window === 'undefined' || isAuthenticating.current) return
+      isAuthenticating.current = true
 
       const code = searchParams.get('code')
       const realmId = searchParams.get('realmId')
@@ -27,7 +29,7 @@ function OAuthRedirectContent() {
 
       try {
         // Exchange code for JWT with your backend
-        const response = await fetch('https://api.ordrport.com/franchiser/qbLogin', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/franchiser/qbLogin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

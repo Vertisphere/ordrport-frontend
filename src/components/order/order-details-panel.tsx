@@ -41,11 +41,11 @@ export function OrderDetailsPanel({ invoice }: OrderDetailsPanelProps) {
         <CardContent className="space-y-2">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Balance</span>
-            <span className="font-medium">${invoice.Balance.toFixed(2)}</span>
+            <span className="font-medium">${invoice.Balance ? invoice.Balance.toFixed(2) : 'N/A'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Customer</span>
-            <span className="font-medium">{invoice.CustomerRef.name}</span>
+            <span className="font-medium">{invoice.CustomerRef ? invoice.CustomerRef.name : 'N/A'}</span>
           </div>
         </CardContent>
       </Card>
@@ -69,7 +69,7 @@ export function OrderDetailsPanel({ invoice }: OrderDetailsPanelProps) {
                       </p>
                     </div>
                     <p className="font-medium">
-                      ${line.Amount.toFixed(2)}
+                      ${line.Amount ? line.Amount.toFixed(2) : 'N/A'}
                     </p>
                   </div>
                   <Separator className="mt-4" />
@@ -79,7 +79,7 @@ export function OrderDetailsPanel({ invoice }: OrderDetailsPanelProps) {
             
             <div className="flex justify-between items-center pt-4">
               <span className="font-medium">Subtotal</span>
-              <span className="font-medium">${subtotal.toFixed(2)}</span>
+              <span className="font-medium">${subtotal ? subtotal.toFixed(2) : 'N/A'}</span>
             </div>
           </div>
         </CardContent>

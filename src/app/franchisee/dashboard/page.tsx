@@ -35,9 +35,9 @@ export default function FranchiseeDashboard() {
       try {
         const headers = { Authorization: `Bearer ${jwt}` }
         const [unpaidRes, draftsRes, pendingRes] = await Promise.all([
-          fetch('https://api.ordrport.com/qbInvoices?statuses=C', { headers }),
-          fetch('https://api.ordrport.com/qbInvoices?statuses=D', { headers }),
-          fetch('https://api.ordrport.com/qbInvoices?statuses=P', { headers })
+          fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoices?statuses=C`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoices?statuses=D`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoices?statuses=P`, { headers })
         ])
 
         const [unpaidData, draftsData, pendingData] = await Promise.all([

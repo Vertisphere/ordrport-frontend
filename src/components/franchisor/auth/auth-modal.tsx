@@ -18,15 +18,14 @@ export function AuthModal() {
   const { showAuthModal, setShowAuthModal } = useAuth()
 
   const handleQuickBooksLogin = () => {
-    // In production, these would come from environment variables
-    const clientId = 'ABRZXEqL4DpCxHz4OhdiuKg0BXaKIYf4QfVgqLdzC3SngxVNWy'
-    const redirectUri = `http://localhost:3000/franchisor/oauth-redirect`
-    const scope = 'com.intuit.quickbooks.accounting openid profile email phone'
+    const clientId = process.env.NEXT_PUBLIC_QUICKBOOKS_CLIENT_ID
+    const redirectUri = process.env.NEXT_PUBLIC_QUICKBOOKS_REDIRECT_URI
+    const scope = process.env.NEXT_PUBLIC_QUICKBOOKS_SCOPE || 'com.intuit.quickbooks.accounting openid profile email phone'
     
-    const authUrl = `https://appcenter.intuit.com/connect/oauth2/authorize`
+    const authUrl = `https://appcenter.intuit.com/connect/oauth2`
     const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
+      client_id: clientId || '',
+      redirect_uri: redirectUri || '',
       response_type: 'code',
       scope: scope,
       state: Math.random().toString(36).substring(7) // Add any state you want to verify later

@@ -14,22 +14,30 @@ export default function FranchisorDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [companyId, setCompanyId] = useState("")
   const [customerId, setCustomerId] = useState("")
+  const [jwt, setJwt] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Initialize jwt state after component mounts
+    if (typeof window !== 'undefined') {
+      setJwt(localStorage.getItem('jwt'))
+    }
+  }, [])
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt')
     if (jwt) {
-      const decoded = jwtDecode(jwt) as any
-      setCompanyId(decoded.qb_company_id || "")
-      setCustomerId(decoded.qb_customer_id || "")
+    const decoded = jwtDecode(jwt) as any
+    setCompanyId(decoded.qb_company_id || "")
+    setCustomerId(decoded.qb_customer_id || "")
     }
 
     const fetchData = async () => {
       try {
         const headers = { Authorization: `Bearer ${jwt}` }
         const [unpaidRes, draftsRes, pendingRes] = await Promise.all([
-          fetch('https://api.ordrport.com/qbInvoices?statuses=C', { headers }),
-          fetch('https://api.ordrport.com/qbInvoices?statuses=D', { headers }),
-          fetch('https://api.ordrport.com/qbInvoices?statuses=P', { headers })
+          fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoices?statuses=C`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoices?statuses=D`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoices?statuses=P`, { headers })
         ])
 
         const [unpaidData, draftsData, pendingData] = await Promise.all([
@@ -70,6 +78,10 @@ export default function FranchisorDashboard() {
       </Card>
     </Link>
   )
+
+if (!jwt) {
+    return null
+  }
 
   return (
     <>
@@ -123,7 +135,7 @@ export default function FranchisorDashboard() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.5 }}
               >
-                Customer #{customerId}, working in Company #{companyId}
+                Franchisor #{customerId}, working in Company #{companyId}
               </motion.p>
             )}
           </div>
@@ -189,7 +201,7 @@ export default function FranchisorDashboard() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-500">
-                    Create and manage your orders
+                    Manage your orders
                   </p>
                 </CardContent>
               </Card>

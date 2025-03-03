@@ -73,7 +73,7 @@ export default function FranchisorItemsPage() {
 
       const queryString = buildQueryString(pageSize, pageIndex + 1, sorting, filters)
       const response = await fetch(
-        `https://api.ordrport.com/qbItems?${queryString}`,
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbItems?${queryString}`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`
@@ -120,13 +120,15 @@ export default function FranchisorItemsPage() {
     const selectedId = Object.keys(selectedRows).find(id => selectedRows[id])
     const item = items.find(i => i.Id === selectedId)
     if (item) {
-      setSelectedItem(item)
-      setIsEditPanelOpen(true)
+      window.open('https://qbo.intuit.com/app/items', '_blank')
     }
   }
-
   const handleDelete = () => {
-    console.log("Delete clicked")
+    const selectedId = Object.keys(selectedRows).find(id => selectedRows[id])
+    const item = items.find(i => i.Id === selectedId)
+    if (item) {
+      window.open('https://qbo.intuit.com/app/items', '_blank')
+    }
   }
 
   const selectedRowsCount = Object.values(selectedRows).filter(Boolean).length

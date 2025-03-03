@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/page-header"
 import { PageSidebar } from "@/components/page-sidebar"
 import { DataTable } from "@/components/data-table"
 import { invoiceColumns } from "@/types/entities"
-import { RefreshCw, FileText } from "lucide-react"
+import { RefreshCw, FileText, Printer } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Invoice } from "@/types/entities"
 import { SortingState } from "@tanstack/react-table"
@@ -50,7 +50,7 @@ export default function InPreparationOrdersPage() {
       }
 
       const response = await fetch(
-        `https://api.ordrport.com/qbInvoices?${queryParams}`,
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoices?${queryParams}`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`
@@ -113,8 +113,70 @@ export default function InPreparationOrdersPage() {
       onClick: handleSetReadyForPickup,
       icon: FileText,
       disabled: selectedRowsCount !== 1,
+    },
+    {
+      title: "PRINT",
+      onClick: async () => {
+        if (!selectedOrderId) return
+        
+        try {
+          const jwt = localStorage.getItem('jwt')
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice/${selectedOrderId}`, {
+            headers: {
+              Authorization: `Bearer ${jwt}`
+            }
+          })
+          
+          const data = await response.json()
+          
+          // Create print content
+          const printContent = `
+            <html>
+              <head>
+                <title>Order ${data.invoice.Id} - ${data.invoice.CustomerRef.name}</title>
+              </head>
+              <body>
+                <h1>Order #${data.invoice.Id}</h1>
+                <h2>Customer: ${data.invoice.CustomerRef.name}</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <th style="border: 1px solid black; padding: 8px;">Item</th>
+                    <th style="border: 1px solid black; padding: 8px;">Quantity</th>
+                  </tr>
+                  ${data.invoice.Line
+                    .filter((line: { SalesItemLineDetail: { ItemRef: { name: string }, Qty: number } }) => line.SalesItemLineDetail?.ItemRef?.name && line.SalesItemLineDetail?.Qty)
+                    .map((line: { SalesItemLineDetail: { ItemRef: { name: string }, Qty: number } }) => `
+                      <tr>
+                        <td style="border: 1px solid black; padding: 8px;">${line.SalesItemLineDetail.ItemRef.name}</td>
+                        <td style="border: 1px solid black; padding: 8px;">${line.SalesItemLineDetail.Qty}</td>
+                      </tr>
+                    `).join('')}
+                </table>
+              </body>
+            </html>
+          `
+          
+          // Create a new window and print
+          const printWindow = window.open('', '_blank')
+          printWindow?.document.write(printContent)
+          printWindow?.document.close()
+          printWindow?.print()
+          printWindow?.close()
+          
+        } catch (error) {
+          console.error('Error printing order:', error)
+        }
+      },
+      icon: Printer,
+      disabled: !selectedOrderId || isLoading,
     }
   ]
+
+  const handleRowSelectionChange = (newSelection: Record<string, boolean>) => {
+    setSelectedRows(newSelection)
+    const selectedId = Object.keys(newSelection).find(id => newSelection[id])
+    setSelectedOrderId(selectedId || null)
+  }
 
   const invoiceColumnsWithSheet = invoiceColumns.map(column => {
     if (column.accessorKey === 'Id') {
@@ -168,7 +230,7 @@ export default function InPreparationOrdersPage() {
             secondaryActions={secondaryActions}
             onSelectionChange={setSelectedRows}
             rowSelection={selectedRows}
-            onRowSelectionChange={setSelectedRows}
+            onRowSelectionChange={handleRowSelectionChange}
             selectionMode="highlight"
           />
         </main>

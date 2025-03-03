@@ -74,7 +74,7 @@ export default function FranchisorOrdersPage() {
 
       const queryString = buildQueryString(pageSize, pageIndex + 1, sorting, filters)
       const response = await fetch(
-        `https://api.ordrport.com/qbInvoices?${queryString}`,
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoices?${queryString}`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`
@@ -121,7 +121,7 @@ export default function FranchisorOrdersPage() {
     const selectedId = Object.keys(selectedRows)[0]
     try {
       const jwt = localStorage.getItem('jwt')
-      const response = await fetch(`https://api.ordrport.com/qbInvoice:approve/${selectedId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice:approve/${selectedId}`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${jwt}`
@@ -140,8 +140,8 @@ export default function FranchisorOrdersPage() {
     const selectedId = Object.keys(selectedRows)[0]
     try {
       const jwt = localStorage.getItem('jwt')
-      const response = await fetch(`https://api.ordrport.com/qbInvoice:reject/${selectedId}`, {
-        method: 'POST',
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice:unpublish/${selectedId}`, {
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${jwt}`
         }

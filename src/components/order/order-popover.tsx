@@ -26,7 +26,7 @@ export function OrderPopover({ orderId, trigger }: OrderPopoverProps) {
     setIsLoading(true)
     try {
       const jwt = localStorage.getItem('jwt')
-      const response = await fetch(`https://api.ordrport.com/qbInvoice/${orderId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice/${orderId}`, {
         headers: {
           Authorization: `Bearer ${jwt}`
         }

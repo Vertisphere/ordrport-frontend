@@ -84,7 +84,7 @@ export default function FranchisorFranchiseesPage() {
 
       const queryString = buildQueryString(pageSize, pageIndex + 1, sorting, filters)
       const response = await fetch(
-        `https://api.ordrport.com/qbCustomers?${queryString}`,
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbCustomers?${queryString}`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`
@@ -119,7 +119,7 @@ export default function FranchisorFranchiseesPage() {
   }, [pagination, sorting, columnFilters, skipEffect, fetchFranchisees])
 
   const handleCreateFranchisee = () => {
-    console.log("Create franchisee clicked")
+    window.open('https://qbo.intuit.com/app/customers', '_blank')
   }
 
   const handleRefresh = () => {
@@ -137,16 +137,17 @@ export default function FranchisorFranchiseesPage() {
 
   const handleEdit = () => {
     // Find the franchisee by ID instead of row index
-    const selectedId = Object.keys(selectedRows)[0]
-    const franchisee = franchisees.find(f => f.Id === selectedId)
-    if (franchisee) {
-      setSelectedFranchisee(franchisee)
-      setIsEditPanelOpen(true)
-    }
+    // const selectedId = Object.keys(selectedRows)[0]
+    // const franchisee = franchisees.find(f => f.Id === selectedId)
+    // if (franchisee) {
+    //   setSelectedFranchisee(franchisee)
+    //   setIsEditPanelOpen(true)
+    // }
+    window.open('https://qbo.intuit.com/app/customers', '_blank')
   }
 
   const handleDelete = () => {
-    console.log("Delete clicked")
+    window.open('https://qbo.intuit.com/app/customers', '_blank')
   }
 
   const handleSelectionChange = (newSelection: Record<string, boolean>) => {

@@ -92,7 +92,7 @@ export default function FranchisorInvoicesPage() {
 
         const queryString = buildQueryString(pageSize, pageIndex + 1, sorting, filters)
         const response = await fetch(
-          `https://api.ordrport.com/qbInvoices?${queryString}`,
+          `${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoices?${queryString}`,
           {
             headers: {
               Authorization: `Bearer ${jwt}`
@@ -146,16 +146,49 @@ export default function FranchisorInvoicesPage() {
       icon: RefreshCw,
     },
     {
-      title: "PRINT",
-      onClick: () => {
-        const selectedId = Object.keys(selectedRows).find(id => selectedRows[id])
-        if (selectedId) {
-          router.push(`/franchisor/invoices/${selectedId}`)
-        }
-      },
-      icon: Printer,
-      disabled: selectedRowsCount !== 1,
-    }
+        title: "PRINT",
+        onClick: async () => {
+          const selectedId = Object.keys(selectedRows).find(id => selectedRows[id])
+          if (!selectedId) return
+          
+          setIsLoading(true)
+          
+          try {
+            const jwt = localStorage.getItem('jwt')
+            if (!jwt) return
+            
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoicePDF/${selectedId}`, 
+              {
+                headers: {
+                  Authorization: `Bearer ${jwt}`
+                }
+              }
+            )
+            
+            if (!response.ok) throw new Error('Failed to fetch PDF')
+            
+            const blob = await response.blob()
+            const url = URL.createObjectURL(blob)
+            
+            // Open PDF in new window and trigger print
+            const printWindow = window.open(url)
+            if (printWindow) {
+              printWindow.onload = () => {
+                printWindow.print()
+                // Clean up the URL after printing
+                URL.revokeObjectURL(url)
+              }
+            }
+          } catch (error) {
+            console.error('Error printing invoice:', error)
+          } finally {
+            setIsLoading(false)
+          }
+        },
+        icon: Printer,
+        disabled: selectedRowsCount !== 1 || isLoading,
+      }
   ]
 
   return (

@@ -27,6 +27,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   const checkAuth = () => {
+    // Don't show auth modal on OAuth redirect page
+    if (typeof window !== 'undefined' && 
+        window.location.pathname.includes('oauth-redirect')) {
+      setIsLoading(false)
+      return
+    }
+
     const token = localStorage.getItem('jwt')
     
     if (!token) {

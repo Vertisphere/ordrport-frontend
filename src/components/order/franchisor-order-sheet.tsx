@@ -39,7 +39,7 @@ export function FranchisorOrderSheet({
       const fetchInvoice = async () => {
         try {
           const jwt = localStorage.getItem('jwt')
-          const response = await fetch(`https://api.ordrport.com/qbInvoice/${orderId}`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice/${orderId}`, {
             headers: {
               Authorization: `Bearer ${jwt}`
             }
@@ -60,7 +60,7 @@ export function FranchisorOrderSheet({
     setIsActionLoading(true)
     try {
       const jwt = localStorage.getItem('jwt')
-      const response = await fetch(`https://api.ordrport.com/qbInvoice:approve/${orderId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice:approve/${orderId}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${jwt}`
@@ -92,7 +92,7 @@ export function FranchisorOrderSheet({
     setIsActionLoading(true)
     try {
       const jwt = localStorage.getItem('jwt')
-      const response = await fetch(`https://api.ordrport.com/qbInvoice:reject/${orderId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice:unpublish/${orderId}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${jwt}`
@@ -124,7 +124,7 @@ export function FranchisorOrderSheet({
     setIsActionLoading(true)
     try {
       const jwt = localStorage.getItem('jwt')
-      const response = await fetch(`https://api.ordrport.com/qbInvoice:complete/${orderId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/qbInvoice:complete/${orderId}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${jwt}`

@@ -340,7 +340,7 @@ export const franchiseeColumns: ColumnDefinition<Franchisee>[] = [
     header: "Balance",
     filterable: true,
     sortable: true,
-    cell: (value: number) => `$${value.toFixed(2)}`,
+    cell: (value: number) => `$${value ? value.toFixed(2) : 'N/A'}`,
     visible: true
   },
   {
@@ -356,7 +356,7 @@ export const franchiseeColumns: ColumnDefinition<Franchisee>[] = [
     header: "Balance with Jobs",
     filterable: true,
     sortable: true,
-    cell: (value: number) => `$${value.toFixed(2)}`,
+    cell: (value: number) => `$${value ? value.toFixed(2) : 'N/A'}`,
     visible: false
   },
   // {
@@ -428,15 +428,15 @@ export const invoiceColumns: ColumnDefinition<Invoice>[] = [
     filterable: true,
     sortable: true,
     visible: true,
-    // cell: (value: string) => (
-    //   <Link 
-    //     href={`/franchisee/orders/${value}`}
-    //     className="text-blue-600 text-decoration-line-underline"
-    //     style={{ textDecoration: 'underline' }}
-    //   >
-    //     {value}
-    //   </Link>
-    // )
+    cell: (value: string) => (
+      <Link 
+        href={`/franchisee/orders/${value}`}
+        className="text-blue-600 text-decoration-line-underline"
+        style={{ textDecoration: 'underline' }}
+      >
+        {value}
+      </Link>
+    )
   },
   {
     accessorKey: "CustomerRef",
@@ -467,7 +467,7 @@ export const invoiceColumns: ColumnDefinition<Invoice>[] = [
     filterable: false,
     sortable: true,
     visible: true,
-    cell: (value: number) => `$${value.toFixed(2)}`
+    cell: (value: number) => `$${ value ? value.toFixed(2) : 'N/A'}`
   },
   {
     accessorKey: "Balance",
@@ -475,7 +475,7 @@ export const invoiceColumns: ColumnDefinition<Invoice>[] = [
     filterable: false,
     sortable: true,
     visible: true,
-    cell: (value: number) => `$${value.toFixed(2)}`
+    cell: (value: number) => `$${value ? value.toFixed(2) : 'N/A'}`
   },
   {
     accessorKey: "DocNumber",
@@ -551,7 +551,7 @@ export const itemColumns: ColumnDefinition<Item>[] = [
     filterable: false,
     sortable: true,
     visible: true,
-    cell: (value: number) => `$${value.toFixed(2)}`
+    cell: (value: number) => `$${ value ? value.toFixed(2) : 'N/A'}`
   },
   {
     accessorKey: "QtyOnHand",

@@ -18,7 +18,7 @@ export function UnlinkPanel({ isOpen, onClose, franchisee, onSuccess }: UnlinkPa
     try {
       setIsLoading(true)
       const jwt = localStorage.getItem('jwt')
-      const response = await fetch('https://api.ordrport.com/customer', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/customer`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
