@@ -26,7 +26,7 @@ interface OrderInfoAction {
   opensModal: boolean
   modalTitle?: string
   modalDescription?: string
-  onSubmit?: () => Promise<void>
+  onSubmit?: (...args: any[]) => Promise<void>
   disabled?: boolean
 }
 
@@ -181,9 +181,9 @@ export function OrderInfoSection({ invoice, actions }: OrderInfoSectionProps) {
             {actions.map((action, index) => (
               <Button 
                 key={index}
-                onClick={() => action.opensModal ? setIsOpen(action.buttonText) : action.onSubmit?.()}
+                onClick={() => action.opensModal ? setIsOpen(action.buttonText) : action.buttonText !== "PRINT ITEMS" ? action.onSubmit?.() : action.onSubmit?.(invoice.Id)}
                 disabled={isSubmitting || action.disabled}
-                variant={index === 0 ? "outline" : "ghost"}
+                variant="outline"
                 size="sm"
                 className={cn(
                   "font-medium transition-colors",
@@ -192,7 +192,11 @@ export function OrderInfoSection({ invoice, actions }: OrderInfoSectionProps) {
                   isSubmitting && "opacity-50 cursor-not-allowed"
                 )}
               >
-                {isSubmitting && isOpen === action.buttonText ? "Submitting..." : action.buttonText}
+              {isSubmitting
+                ? "Submitting..."
+                : action.disabled
+                ? "Already Pending; Can only modify items"
+                : action.buttonText}
               </Button>
             ))}
           </div>

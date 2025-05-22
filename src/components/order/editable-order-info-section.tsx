@@ -1,36 +1,57 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Filter, HelpCircle, Trash2 } from 'lucide-react'
-import { LineItem } from "@/types/entities"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Filter, HelpCircle, Trash2 } from "lucide-react";
+import { LineItem } from "@/types/entities";
+import { cn } from "@/lib/utils";
 
 interface EditableOrderInfoSectionProps {
-  items: LineItem[]
-  onQuantityChange: (itemId: string, quantity: number) => void
-  onRemoveItem: (itemId: string) => void
-  onSave: () => Promise<void>
-  isSaving?: boolean
-  editable?: boolean
+  items: LineItem[];
+  onQuantityChange: (itemId: string, quantity: number) => void;
+  onRemoveItem: (itemId: string) => void;
+  onSave: () => Promise<void>;
+  onSubmit?: () => Promise<void>;
+  isSaving?: boolean;
+  isSubmitting?: boolean;
+  editable?: boolean;
+  canSubmit?: boolean;
+  canSave?: boolean
 }
 
-export function EditableOrderInfoSection({ 
-  items, 
-  onQuantityChange, 
+export function EditableOrderInfoSection({
+  items,
+  onQuantityChange,
   onRemoveItem,
   onSave,
+  onSubmit,
   isSaving = false,
-  editable = true
+  isSubmitting = false,
+  editable = true,
+  canSubmit = false,
+  canSave = false,
 }: EditableOrderInfoSectionProps) {
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredItems = items.filter(item => {
-    if (!item?.item?.Name) return false
-    return item.item.Name.toLowerCase().includes(searchTerm.toLowerCase())
-  })
+  const filteredItems = items.filter((item) => {
+    if (!item?.item?.Name) return false;
+    return item.item.Name.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  const handleSaveAndSubmit = async () => {
+    try {
+      // First save the changes
+      await onSave();
+      // Then submit the order if onSubmit is provided
+      if (onSubmit) {
+        await onSubmit();
+      }
+    } catch (error) {
+      console.error("Error in save and submit:", error);
+    }
+  };
 
   const calculateTotal = (quantity: number, unitPrice: number) => {
     return quantity * unitPrice
@@ -119,31 +140,58 @@ export function EditableOrderInfoSection({
             })}
           </div>
         </div>
-        {editable && (
-          <div className="mt-auto px-4 py-3 border-t flex gap-2 bg-white flex-none">
-            <Button 
-              onClick={onSave}
-              disabled={isSaving}
-              variant="outline"
-              size="sm"
-              className={cn(
-                "font-medium transition-colors",
-                "hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600",
-                isSaving && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              {isSaving ? "Saving..." : "Save Changes"}
-            </Button>
-            <Button 
-              variant="ghost"
-              size="sm"
-              disabled={isSaving}
-              className="text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            >
-              Discard Changes
-            </Button>
-          </div>
-        )}
-      </div>
-  )
+      {editable && (
+        <div className="mt-auto px-4 py-3 border-t flex gap-2 bg-white flex-none">
+          <Button
+            onClick={handleSaveAndSubmit}
+            disabled={isSaving || isSubmitting || !canSubmit}
+            variant="outline"
+            size="sm"
+            className={cn(
+              "font-medium transition-colors",
+              "hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600",
+              (isSaving || isSubmitting) && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            {isSubmitting
+              ? "Submitting..."
+              : isSaving
+              ? "Saving..."
+              : !canSubmit
+              ? "Already Pending; Can only modify items"
+              : "Submit Order"}
+          </Button>
+
+          <Button
+            onClick={onSave}
+            disabled={isSaving || isSubmitting || !canSave}
+            variant="outline"
+            size="sm"
+            className={cn(
+              "font-medium transition-colors",
+              "hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600",
+              (isSaving || isSubmitting) && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            {isSubmitting
+              ? "Submitting..."
+              : isSaving
+              ? "Saving..."
+              : !canSave
+              ? "Can only modify items when draft or pending"
+              : "Save Changes"}
+          </Button>
+
+          {/* <Button
+            variant="ghost"
+            size="sm"
+            disabled={isSaving || isSubmitting}
+            className="text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+          >
+            Discard Changes
+          </Button> */}
+        </div>
+      )}
+    </div>
+  );
 }
