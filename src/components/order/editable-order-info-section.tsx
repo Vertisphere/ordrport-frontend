@@ -179,7 +179,7 @@ export function EditableOrderInfoSection({
               ? "Saving..."
               : !canSave
               ? "Can only modify items when draft or pending"
-              : "Submit Order"}
+              : "Save Changes"}
           </Button>
 
           {/* <Button

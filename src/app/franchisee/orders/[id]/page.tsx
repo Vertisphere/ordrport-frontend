@@ -389,6 +389,7 @@ export default function OrderPage() {
                 isSaving={isSaving}
                 isSubmitting={isSubmitting}
                 canSubmit={canSubmitOrder}
+                canSave={canSaveChanges}
               />
             }
           />
