@@ -192,7 +192,11 @@ export function OrderInfoSection({ invoice, actions }: OrderInfoSectionProps) {
                   isSubmitting && "opacity-50 cursor-not-allowed"
                 )}
               >
-                {isSubmitting && isOpen === action.buttonText ? "Submitting..." : action.buttonText}
+              {isSubmitting
+                ? "Submitting..."
+                : action.disabled
+                ? "Already Pending; Can only modify items"
+                : action.buttonText}
               </Button>
             ))}
           </div>
