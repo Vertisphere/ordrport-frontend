@@ -32,6 +32,10 @@ export function EditableOrderInfoSection({
     return item.item.Name.toLowerCase().includes(searchTerm.toLowerCase())
   })
 
+  const calculateTotal = (quantity: number, unitPrice: number) => {
+    return quantity * unitPrice
+  }
+
   return (
       <div className="p-0 h-full flex-1 flex flex-col min-h-0">
         <div className="px-4 py-2 border-y bg-gray-50 flex-none">
@@ -51,49 +55,68 @@ export function EditableOrderInfoSection({
           </div>
         </div>
         <div className="flex-1 overflow-auto min-h-0">
-          <div className="sticky top-0 grid grid-cols-[2fr,80px,80px,40px] gap-2 px-4 py-1.5 bg-muted/30 z-10">
+          <div className="sticky top-0 grid grid-cols-[2fr,80px,80px,80px,40px] gap-2 px-4 py-1.5 bg-muted/30 z-10">
             <div className="text-xs font-medium">Item Name</div>
             <div className="text-xs font-medium text-right">Quantity</div>
-            <div className="text-xs font-medium text-right">Price</div>
+            <div className="text-xs font-medium text-right">Unit Price</div>
+            <div className="text-xs font-medium text-right">Total</div>
             <div className="text-xs font-medium"></div>
           </div>
           <div>
-            {filteredItems.map((lineItem) => (
-              <div
-                key={lineItem.item.Id}
-                className="w-full px-4 py-1.5 grid grid-cols-[2fr,80px,80px,40px] gap-2 text-left hover:bg-muted/30 transition-colors items-center group"
-              >
-                <div className="text-xs">{lineItem.item.Name}</div>
-                <div className="flex justify-end">
-                  {editable ? (
-                    <Input
-                      type="number"
-                      value={lineItem.quantity}
-                      onChange={(e) => onQuantityChange(lineItem.item.Id, parseInt(e.target.value) || 0)}
-                      className="w-12 h-6 text-xs text-right p-0 border border-gray-300 rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
-                      min="0"
-                    />
-                  ) : (
-                    <div className="text-xs">{lineItem.quantity}</div>
-                  )}
+            {filteredItems.map((lineItem) => {
+              const unitPrice = lineItem.item.UnitPrice || 0
+              const total = calculateTotal(lineItem.quantity, unitPrice)
+              
+              return (
+                <div
+                  key={lineItem.item.Id}
+                  className="w-full px-4 py-1.5 grid grid-cols-[2fr,80px,80px,80px,40px] gap-2 text-left hover:bg-muted/30 transition-colors items-center group"
+                >
+                  <div className="text-xs">{lineItem.item.Name}</div>
+                  <div className="flex justify-end">
+                    {editable ? (
+                      <Input
+                        type="number"
+                        value={lineItem.quantity === 0 ? '' : lineItem.quantity}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          if (value === '') {
+                            onQuantityChange(lineItem.item.Id, 0)
+                          } else {
+                            const numValue = parseInt(value)
+                            if (!isNaN(numValue) && numValue >= 0) {
+                              onQuantityChange(lineItem.item.Id, numValue)
+                            }
+                          }
+                        }}
+                        className="w-12 h-6 text-xs text-right p-0 border border-gray-300 rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+                        min="0"
+                      />
+                    ) : (
+                      <div className="text-xs">{lineItem.quantity}</div>
+                    )}
+                  </div>
+                  <div className="text-xs text-right">
+                    ${unitPrice.toFixed(2)}
+                  </div>
+                  <div className="text-xs text-right font-medium">
+                    ${total.toFixed(2)}
+                  </div>
+                  <div className="flex justify-end">
+                    {editable && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onRemoveItem(lineItem.item.Id)}
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div className="text-xs text-right">
-                  ${lineItem.item.UnitPrice ? lineItem.item.UnitPrice.toFixed(2) : 'N/A'}
-                </div>
-                <div className="flex justify-end">
-                  {editable && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onRemoveItem(lineItem.item.Id)}
-                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
         {editable && (
@@ -123,4 +146,4 @@ export function EditableOrderInfoSection({
         )}
       </div>
   )
-} 
+}
